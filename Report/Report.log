@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6730 64-bit) (preloaded format=pdflatex 2018.10.10)  10 OCT 2018 22:23
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (MiKTeX 2.9.6730 64-bit) (preloaded format=pdflatex 2018.10.10)  22 OCT 2018 13:02
 entering extended mode
 **./Report.tex
 (Report.tex
@@ -222,7 +222,7 @@ LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 53.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/it' in size <10> not available
 (Font)              Font shape `OT1/ptm/b/it' tried instead on input line 63.
-
+ (myTest.tex)
 Underfull \hbox (badness 10000) has occurred while \output is active
 []
  []
@@ -241,27 +241,21 @@ Underfull \hbox (badness 10000) has occurred while \output is active
 
 ]
 
-LaTeX Warning: Citation `Lamp86' on page 2 undefined on input line 170.
-
-
-LaTeX Warning: Citation `C2' on page 2 undefined on input line 233.
+LaTeX Warning: Citation `Lamp86' on page 2 undefined on input line 172.
 
 (Report.bbl) [2] (Report.aux)
 
 LaTeX Warning: There were undefined references.
 
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
  ) 
 Here is how much of TeX's memory you used:
- 2135 strings out of 492973
- 30121 string characters out of 3124476
- 98235 words of memory out of 3000000
+ 2138 strings out of 492973
+ 30203 string characters out of 3124476
+ 98239 words of memory out of 3000000
  5981 multiletter control sequences out of 15000+200000
  21015 words of font info for 45 fonts, out of 3000000 for 9000
  1141 hyphenation exceptions out of 8191
- 41i,10n,25p,341b,247s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 41i,10n,25p,330b,247s stack positions out of 5000i,500n,10000p,200000b,50000s
 {C:/Users/PeterBakke/AppData/Local/Programs/MiKTeX 2.9/fonts/enc/dvips/base/8
 r.enc}<C:/Users/PeterBakke/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public
 /amsfonts/cm/cmsy10.pfb><C:/Users/PeterBakke/AppData/Local/Programs/MiKTeX 2.9/
@@ -272,7 +266,7 @@ terBakke/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times/utmbi8a.pfb><C
 :/Users/PeterBakke/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/times/utmr
 8a.pfb><C:/Users/PeterBakke/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/urw/t
 imes/utmri8a.pfb>
-Output written on Report.pdf (2 pages, 87357 bytes).
+Output written on Report.pdf (2 pages, 87421 bytes).
 PDF statistics:
  38 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
