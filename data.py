@@ -1,5 +1,16 @@
 """
 Data preprocessing file
+
+Created: 2018-11-05
+Author: Peter J. Bakke
+
+Reviewed by:
+
+
+Changed by:
+
+
+
 """
 
 import pandas as pd
