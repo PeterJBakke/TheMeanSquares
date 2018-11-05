@@ -8,6 +8,9 @@ import os
 
 
 class MovieLens():
+    """
+    Class to handle the MovieLens data
+    """
     def __init__(self):
         self.base_dir = os.getcwd()
         self.ratingsPath = self.base_dir + '/Datasets/MovieLens-Small/ratings.csv'
