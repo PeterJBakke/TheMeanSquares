@@ -26,6 +26,9 @@ class MovieLens():
         self.base_dir = os.getcwd()
         self.ratingsPath = self.base_dir + '/Datasets/MovieLens-Small/ratings.csv'
         self.moviesPath = self.base_dir + '/Datasets/MovieLens-Small/movies.csv'
+        print("MovieLens Data handler started \n")
+        print("Path to ratings data: \n" + str(self.ratingsPath)) 
+        print("Path to movies data: \n" + str(self.moviesPath))
 
     def MovieLensRatingsData(self):
         """
