@@ -114,7 +114,33 @@ class TalentFox():
     def getMatchStatus(self):
         return self.data['match_status']
 
+
+class citeulike():
+    """
+    Class to handle the Cite-U-Like data
+
+    Predict:
+    match_status
+
+    """
+    def __init__(self):
+        self.base_dir = os.getcwd()
+        self.file_user_info = os.path.join(self.base_dir, 'Datasets/citeulike/user-info.csv')
+        self.file_raw_data = os.path.join(self.base_dir, 'Datasets/citeulike/raw-data.csv')
+        self.user_info = self.load(self.file_user_info)
+        self.raw_data = self.load(self.file_raw_data)
+
+    def load(self, file):
+        data = pd.read_csv(file, encoding='utf-8')
+        return data
+
+
+
+
 if __name__ == "__main__":
+    myData = citeulike()
+    print(myData.raw_data)
+    """
     myData = MovieLens()
     movies = myData.MovieLensMoviesData()
     ratings = myData.MovieLensRatingsData()
@@ -122,3 +148,4 @@ if __name__ == "__main__":
     print(movies.shape)
     print(ratings.shape)
     print(users.shape)
+    """
