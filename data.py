@@ -131,16 +131,17 @@ class citeulike():
         self.raw_data = self.load(self.file_raw_data)
 
     def load(self, file):
-        data = pd.read_csv(file, encoding='utf-8')
+        data = pd.read_csv(file, encoding="ISO-8859-1")
         return data
 
+    def getUserInfo(self):
+        return self.user_info
 
+    def getRawData(self):
+        return self.raw_data
 
 
 if __name__ == "__main__":
-    myData = citeulike()
-    print(myData.raw_data)
-    """
     myData = MovieLens()
     movies = myData.MovieLensMoviesData()
     ratings = myData.MovieLensRatingsData()
@@ -148,4 +149,3 @@ if __name__ == "__main__":
     print(movies.shape)
     print(ratings.shape)
     print(users.shape)
-    """
