@@ -15,48 +15,39 @@ Changed by:
 
 import pandas as pd
 import os
-
+import numpy as np
+import spacy
+from torchtext import data
+from torchtext.vocab import Vectors
+import torch
 
 
 class MovieLens():
     """
     Class to handle the MovieLens data
     """
+
     def __init__(self):
-        self.base_dir = os.getcwd()
-        self.ratingsPath = os.path.join(self.base_dir, './Datasets/MovieLens-Small/ratings.csv')
-        self.moviesPath = os.path.join(self.base_dir, './Datasets/MovieLens-Small/movies.csv')
-        print("MovieLens Data handler started \n")
-        print("Path to ratings data: \n" + str(self.ratingsPath))
-        print("Path to movies data: \n" + str(self.moviesPath))
+        user = data.Field(sequential=False, use_vocab=True)
+        movie = data.Field(sequential=False, use_vocab=True)
+        rating = data.Field(sequential=False, use_vocab=True)
 
-    def MovieLensRatingsData(self):
-        """
-        Method for loading ratings data
-        :return: data frame with MovieLens ratings data
-        """
-        path = self.ratingsPath
-        data = pd.read_csv(path)
-        return data
+        self.train_set, self.validation_set, self.test_set = data.TabularDataset(
+            path='./Datasets/MovieLens-Small/ratings.csv',
+            format='csv',
+            fields=[('user', user), ('movie', movie), ('rating', rating), ('timestamp', None)],
+            skip_header=True,
+        ).split(split_ratio=[0.7, 0.15, 0.15])
 
-    def MovieLensMoviesData(self):
-        """
-        Method for loading movies data
-        :return: data frame with MovieLens movies data
-        """
-        path = self.moviesPath
-        data = pd.read_csv(path)
-        return data
+    def train_set(self):
+        return self.train_set
 
-    def MovieLensUsers(self):
-        """
-        Method for getting a list of unique userId's
-        :return: DataFrame with the userId's from the MovieLens DataSet
-        """
-        df = self.MovieLensRatingsData()
-        df = df['userId']
-        df.drop_duplicates( inplace=True)
-        return df
+    def validation_set(self):
+        return self.validation_set
+
+    def test_set(self):
+        return self.test_set
+
 
 class TalentFox():
     """
@@ -81,6 +72,7 @@ class TalentFox():
     job_candidate_radius, job_candidate_relocation, job_city, job_state, job_country, job_time_model, job_max_salary,
     job_questions_for_candidate, match_employer_feedback
     """
+
     def __init__(self):
         self.base_dir = os.getcwd()
         self.file = os.path.join(self.base_dir, 'Datasets/talentfox_match_data/processed_dataset.csv')
@@ -123,6 +115,7 @@ class citeulike():
     match_status
 
     """
+
     def __init__(self):
         self.base_dir = os.getcwd()
         self.file_user_info = os.path.join(self.base_dir, 'Datasets/citeulike/user-info.csv')

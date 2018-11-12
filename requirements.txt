@@ -1,3 +1,4 @@
+torchtext
 scikit-learn
 matplotlib
 torch
