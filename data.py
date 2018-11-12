@@ -58,6 +58,12 @@ class MovieLens():
         df.drop_duplicates( inplace=True)
         return df
 
+
+
+
+
+
+
 class TalentFox():
     """
     Class to handle the TalentFox data
@@ -150,7 +156,7 @@ if __name__ == "__main__":
     print(ratings.shape)
     print(users.shape)
 
-    
+
 
 
 
