@@ -15,6 +15,7 @@ Changed by:
 
 import pandas as pd
 import os
+from torchtext import data
 
 
 
@@ -24,8 +25,10 @@ class MovieLens():
     """
     def __init__(self):
         self.base_dir = os.getcwd()
-        self.ratingsPath = os.path.join(self.base_dir, '/Datasets/MovieLens-Small/ratings.csv')
-        self.moviesPath = os.path.join(self.base_dir, '/Datasets/MovieLens-Small/movies.csv')
+        self.ratingsPath = os.path.join(self.base_dir, 'Datasets', 'MovieLens-Small', 'ratings.csv')
+        self.moviesPath = os.path.join(self.base_dir, 'Datasets', 'MovieLens-Small', 'movies.csv')
+#        self.ratingsPath = os.path.join(self.base_dir, r'/Datasets/MovieLens-Small/ratings.csv')
+ #       self.moviesPath = os.path.join(self.base_dir, r'/Datasets/MovieLens-Small/movies.csv')
         print("MovieLens Data handler started \n")
         print("Path to ratings data: \n" + str(self.ratingsPath))
         print("Path to movies data: \n" + str(self.moviesPath))
