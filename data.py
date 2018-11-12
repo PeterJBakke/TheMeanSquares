@@ -19,7 +19,7 @@ from torchtext import data
 import torch
 
 
-class MovieLens():
+class MovieLens:
     """
     Class to handle the MovieLens data
     """
@@ -27,14 +27,14 @@ class MovieLens():
     def __init__(self):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-        user = data.Field(sequential=False, use_vocab=True)
-        movie = data.Field(sequential=False, use_vocab=True)
-        rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
+        self.user = data.Field(sequential=False, use_vocab=True)
+        self.movie = data.Field(sequential=False, use_vocab=True)
+        self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
             path='./Datasets/MovieLens-Small/ratings.csv',
             format='csv',
-            fields=[('user', user), ('movie', movie), ('rating', rating), ('timestamp', None)],
+            fields=[('user', self.user), ('movie', self.movie), ('rating', self.rating), ('timestamp', None)],
             skip_header=True,
         ).split(split_ratio=[0.7, 0.15, 0.15])
 
@@ -43,8 +43,8 @@ class MovieLens():
             batch_size=100,
             device=device)
 
-        user.build_vocab(self.train_set)
-        movie.build_vocab(self.train_set)
+        self.user.build_vocab(self.train_set)
+        self.movie.build_vocab(self.train_set)
 
     def get_train_set(self):
         return self.train_set
@@ -65,7 +65,7 @@ class MovieLens():
         return self.test_iter
 
 
-class TalentFox():
+class TalentFox:
     """
     Class to handle the TalentFox data
 
@@ -123,7 +123,7 @@ class TalentFox():
         return self.data['match_status']
 
 
-class citeulike():
+class citeulike:
     """
     Class to handle the Cite-U-Like data
 

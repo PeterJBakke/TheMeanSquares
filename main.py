@@ -7,19 +7,18 @@ from model import EmbeddingNet
 from data import MovieLens
 from train import train
 
-myData = MovieLens()
-movies = myData.MovieLensMoviesData()
-ratings = myData.MovieLensRatingsData()
-users = myData.MovieLensUsers()
+movie_data = MovieLens()
 
-train_set = ratings.values[:75000, :3]
-test_set = ratings.values[75000:, :3]
+train_set = movie_data.get_train_iter()
+test_set = movie_data.get_test_iter()
+validation_set = movie_data.get_validation_iter()
 
-n_users = int(ratings.userId.nunique())
-n_movies = int(ratings.movieId.nunique())
+user_field = movie_data.user
+movie_field = movie_data.movie
 
-net = EmbeddingNet(n_users, n_movies, n_factors=10).cuda()
+net = EmbeddingNet(user_field=user_field, movie_field=movie_field, n_factors=10).cuda()
 opt = optim.Adam(net.parameters(), 1e-3, weight_decay=1e-5)
 criterion = nn.MSELoss()
 
-train(train_set=train_set, test_set=test_set, net=net, optimizer=opt, criterion=criterion, num_epochs=5)
+train(train_iter=train_set, test_iter=test_set, val_iter=validation_set,
+      net=net, optimizer=opt, criterion=criterion, num_epochs=5)

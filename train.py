@@ -1,84 +1,35 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
-from torch.autograd import Variable
-
-# we could have done this ourselves,
-# but we should be aware of sklearn and it's tools
-from sklearn.metrics import accuracy_score
+def accuracy(output, label):
+    return 0
 
 
-def train(train_set, test_set, net, optimizer, criterion, batch_size=100, num_epochs=5):
-    num_samples_train = train_set.shape[0]
-    num_batches_train = num_samples_train // batch_size
-    num_samples_valid = test_set.shape[0]
-    num_batches_valid = num_samples_valid // batch_size
+def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
+    net.train()
+    prev_epoch = 0
 
-    # setting up lists for handling loss/accuracy
-    train_acc, train_loss = [], []
-    valid_acc, valid_loss = [], []
-    losses = []
+    for batch in train_iter:
+        if train_iter.epoch != prev_epoch:
+            net.eval()
+            val_loss, val_accs, val_length = [0, 0, 0]
 
-    get_slice = lambda i, size: range(i * size, (i + 1) * size)
+            for val_batch in val_iter:
+                val_output = net(val_batch)
+                val_loss += criterion(val_output, val_batch.rating) * val_batch.batch_size
+                val_accs += accuracy(val_output, val_batch.rating) * val_batch.batch_size
+                val_length += val_batch.batch_size
 
-    for epoch in range(num_epochs):
-        # Forward -> Backprob -> Update params
-        # Train
-        cur_loss = 0
+            val_loss /= val_length
+            val_accs /= val_length
+
+            print("#Epoch{}  Loss: {:.2f}, Accuracy: {:.2f}".format(train_iter.epoch, val_loss, val_accs))
+            net.train()
+
         net.train()
-        for i in range(num_batches_train):
-            slce = get_slice(i, batch_size)
-            # x_batch = Variable(torch.from_numpy(train_set[slce, :2]))
-            x_batch = torch.from_numpy(train_set[slce, :2]).cuda()
-            target = train_set[slce, 2]
-            target_batch = torch.from_numpy(target).long().cuda()
-            output = net(x_batch)
+        output = net(batch)
+        batch_loss = criterion(output, batch.rating)
+        optimizer.zero_grad()
+        batch_loss.backward()
+        optimizer.step()
 
-            # compute gradients given loss
-            batch_loss = criterion(output, target_batch)
-            optimizer.zero_grad()
-            batch_loss.backward()
-            optimizer.step()
-
-            cur_loss += batch_loss
-        losses.append(cur_loss / batch_size)
-
-        net.eval()
-        # Evaluate training
-        train_preds, train_targs = [], []
-        for i in range(num_batches_train):
-            slce = get_slice(i, batch_size)
-            x_batch = Variable(torch.from_numpy(train_set[slce]))
-
-            output = net(x_batch)
-            preds = torch.max(output, 1)[1]
-
-            train_targs += list(target)
-            train_preds += list(preds.data.numpy())
-
-        # Evaluate validation
-        val_preds, val_targs = [], []
-        for i in range(num_batches_valid):
-            slce = get_slice(i, batch_size)
-            x_batch = Variable(torch.from_numpy(test_set[slce]))
-
-            output = net(x_batch)
-            preds = torch.max(output, 1)[1]
-            val_preds += list(preds.data.numpy())
-            val_targs += list(target)
-
-        train_acc_cur = accuracy_score(train_targs, train_preds)
-        valid_acc_cur = accuracy_score(val_targs, val_preds)
-
-        train_acc.append(train_acc_cur)
-        valid_acc.append(valid_acc_cur)
-
-        if epoch % 10 == 0:
-            print("Epoch %2i : Train Loss %f , Train acc %f, Valid acc %f" % (
-                epoch + 1, losses[-1], train_acc_cur, valid_acc_cur))
-
-    epoch = np.arange(len(train_acc))
-    plt.figure()
-    plt.plot(epoch, train_acc, 'r', epoch, valid_acc, 'b')
-    plt.legend(['Train Accucary', 'Validation Accuracy'])
-    plt.xlabel('Updates'), plt.ylabel('Acc')
+        prev_epoch = train_iter.epoch
+        if train_iter.epoch > num_epochs:
+            break
