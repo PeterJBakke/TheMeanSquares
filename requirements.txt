@@ -1,2 +1,5 @@
+scikit-learn
+matplotlib
+torch
 pandas
 numpy
