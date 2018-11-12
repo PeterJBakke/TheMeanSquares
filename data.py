@@ -15,10 +15,7 @@ Changed by:
 
 import pandas as pd
 import os
-import numpy as np
-import spacy
 from torchtext import data
-from torchtext.vocab import Vectors
 import torch
 
 
@@ -28,9 +25,11 @@ class MovieLens():
     """
 
     def __init__(self):
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
         user = data.Field(sequential=False, use_vocab=True)
         movie = data.Field(sequential=False, use_vocab=True)
-        rating = data.Field(sequential=False, use_vocab=True)
+        rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
             path='./Datasets/MovieLens-Small/ratings.csv',
@@ -39,14 +38,31 @@ class MovieLens():
             skip_header=True,
         ).split(split_ratio=[0.7, 0.15, 0.15])
 
-    def train_set(self):
+        self.train_iter, self.test_iter, self.validation_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set, self.test_set),
+            batch_size=100,
+            device=device)
+
+        user.build_vocab(self.train_set)
+        movie.build_vocab(self.train_set)
+
+    def get_train_set(self):
         return self.train_set
 
-    def validation_set(self):
+    def get_validation_set(self):
         return self.validation_set
 
-    def test_set(self):
+    def get_test_set(self):
         return self.test_set
+
+    def get_train_iter(self):
+        return self.train_iter
+
+    def get_validation_iter(self):
+        return self.validation_iter
+
+    def get_test_iter(self):
+        return self.test_iter
 
 
 class TalentFox():
@@ -135,10 +151,5 @@ class citeulike():
 
 
 if __name__ == "__main__":
-    myData = MovieLens()
-    movies = myData.MovieLensMoviesData()
-    ratings = myData.MovieLensRatingsData()
-    users = myData.MovieLensUsers()
-    print(movies.shape)
-    print(ratings.shape)
-    print(users.shape)
+    data = MovieLens()
+    train_iter = data.get_train_iter()
