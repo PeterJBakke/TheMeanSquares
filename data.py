@@ -149,3 +149,28 @@ if __name__ == "__main__":
     print(movies.shape)
     print(ratings.shape)
     print(users.shape)
+
+    
+
+
+
+
+"""
+Notes from lecture 2018-11-12 on Data Loaders
+
+Vocabulary 
+ -- can be implemented with TorchText
+
+Padding - dynamic batching
+ -- You don't want information from the padding to affect your computation
+ -- Can also be implemented with TorchText
+ -- PyTorch.LSTM has a method that takes length as input that also ensures that we don't calculate on the padding
+
+
+The dataloader should be a function that acts as an iterator that only gives one batch at a time
+
+- train_iter (only handles one batch at a time during training)
+- valid_iter (only handles one batch at a time during validation)
+- test_iter (only handles one batch at a time during testing)
+ 
+"""
