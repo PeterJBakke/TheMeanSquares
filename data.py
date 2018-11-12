@@ -1,5 +1,5 @@
 """
-Data preprocessing file
+Data pre processing file
 
 Created: 2018-11-05
 Author: Peter J. Bakke
@@ -15,7 +15,8 @@ Changed by:
 
 import pandas as pd
 import os
-
+from torch.utils.data import DataLoader
+from torch.utils.data.sampler import SubsetRandomSampler
 
 
 class MovieLens():
