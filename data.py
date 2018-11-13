@@ -14,6 +14,9 @@ class MovieLens:
 
     def __init__(self):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+        print('Device: ' + str(device))
+
         self.user = data.Field(sequential=False, use_vocab=True)
         self.movie = data.Field(sequential=False, use_vocab=True)
         self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
@@ -141,3 +144,5 @@ class citeulike:
 if __name__ == "__main__":
     data = MovieLens()
     train_iter = data.get_train_iter()
+    print(train_iter.device)
+    print(train_iter.epoch)
