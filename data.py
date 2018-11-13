@@ -1,73 +1,59 @@
 """
-Data pre processing file
-
-Created: 2018-11-05
-Author: Peter J. Bakke
-
-Reviewed by:
-
-
-Changed by:
-
-
-
+Data pre-processing file
 """
 
 import pandas as pd
 import os
 from torchtext import data
-from torch.utils.data import DataLoader
-from torch.utils.data.sampler import SubsetRandomSampler
+import torch
 
-
-class MovieLens():
+class MovieLens:
     """
     Class to handle the MovieLens data
     """
+
     def __init__(self):
-        self.base_dir = os.getcwd()
-        self.ratingsPath = os.path.join(self.base_dir, 'Datasets', 'MovieLens-Small', 'ratings.csv')
-        self.moviesPath = os.path.join(self.base_dir, 'Datasets', 'MovieLens-Small', 'movies.csv')
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.user = data.Field(sequential=False, use_vocab=True)
+        self.movie = data.Field(sequential=False, use_vocab=True)
+        self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
-        print("MovieLens Data handler started \n")
-        print("Path to ratings data: \n" + str(self.ratingsPath))
-        print("Path to movies data: \n" + str(self.moviesPath))
+        self.train_set, self.validation_set, self.test_set = data.TabularDataset(
+            path='./Datasets/MovieLens-Small/ratings.csv',
+            format='csv',
+            fields=[('user', self.user), ('movie', self.movie), ('rating', self.rating), ('timestamp', None)],
+            skip_header=True,
+        ).split(split_ratio=[0.7, 0.15, 0.15])
 
-    def MovieLensRatingsData(self):
-        """
-        Method for loading ratings data
-        :return: data frame with MovieLens ratings data
-        """
-        path = self.ratingsPath
-        data = pd.read_csv(path)
-        return data
+        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set, self.test_set),
+            batch_size=100,
+            device=device,
+            sort_key=lambda x: len(x.movie))
 
-    def MovieLensMoviesData(self):
-        """
-        Method for loading movies data
-        :return: data frame with MovieLens movies data
-        """
-        path = self.moviesPath
-        data = pd.read_csv(path)
-        return data
+        self.user.build_vocab(self.train_set)
+        self.movie.build_vocab(self.train_set)
 
-    def MovieLensUsers(self):
-        """
-        Method for getting a list of unique userId's
-        :return: DataFrame with the userId's from the MovieLens DataSet
-        """
-        df = self.MovieLensRatingsData()
-        df = df['userId']
-        df.drop_duplicates( inplace=True)
-        return df
+    def get_train_set(self):
+        return self.train_set
 
+    def get_validation_set(self):
+        return self.validation_set
 
+    def get_test_set(self):
+        return self.test_set
 
+    def get_train_iter(self):
+        return self.train_iter
 
+    def get_validation_iter(self):
+        return self.validation_iter
 
+    def get_test_iter(self):
+        return self.test_iter
 
 
-class TalentFox():
+class TalentFox:
     """
     Class to handle the TalentFox data
 
@@ -90,6 +76,7 @@ class TalentFox():
     job_candidate_radius, job_candidate_relocation, job_city, job_state, job_country, job_time_model, job_max_salary,
     job_questions_for_candidate, match_employer_feedback
     """
+
     def __init__(self):
         self.base_dir = os.getcwd()
         self.file = os.path.join(self.base_dir, 'Datasets/talentfox_match_data/processed_dataset.csv')
@@ -124,7 +111,7 @@ class TalentFox():
         return self.data['match_status']
 
 
-class citeulike():
+class citeulike:
     """
     Class to handle the Cite-U-Like data
 
@@ -132,6 +119,7 @@ class citeulike():
     match_status
 
     """
+
     def __init__(self):
         self.base_dir = os.getcwd()
         self.file_user_info = os.path.join(self.base_dir, 'Datasets/citeulike/user-info.csv')
@@ -151,35 +139,5 @@ class citeulike():
 
 
 if __name__ == "__main__":
-    myData = MovieLens()
-    movies = myData.MovieLensMoviesData()
-    ratings = myData.MovieLensRatingsData()
-    users = myData.MovieLensUsers()
-    print(movies.shape)
-    print(ratings.shape)
-    print(users.shape)
-
-
-
-
-
-
-"""
-Notes from lecture 2018-11-12 on Data Loaders
-
-Vocabulary 
- -- can be implemented with TorchText
-
-Padding - dynamic batching
- -- You don't want information from the padding to affect your computation
- -- Can also be implemented with TorchText
- -- PyTorch.LSTM has a method that takes length as input that also ensures that we don't calculate on the padding
-
-
-The dataloader should be a function that acts as an iterator that only gives one batch at a time
-
-- train_iter (only handles one batch at a time during training)
-- valid_iter (only handles one batch at a time during validation)
-- test_iter (only handles one batch at a time during testing)
- 
-"""
+    data = MovieLens()
+    train_iter = data.get_train_iter()
