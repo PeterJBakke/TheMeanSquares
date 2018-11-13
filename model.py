@@ -13,6 +13,7 @@ min_rating = 0.5
 class EmbeddingNet(nn.Module):
     def __init__(self, user_field, movie_field, n_factors=10, hidden=10, p1=0.5, p2=0.5):
         super().__init__()
+
         self.movie_field = movie_field
         self.user_field = user_field
 
@@ -34,6 +35,7 @@ class EmbeddingNet(nn.Module):
             nn.Dropout(p2),
             nn.Linear(hidden, 1),
         )
+        print(self)
 
     def get_movie_embedding(self, movies):
         np_movies = np.asarray([self.movie_field.vocab.stoi[movie] for movie in movies])
@@ -50,3 +52,5 @@ class EmbeddingNet(nn.Module):
         x = self.lin1(x)
         x = self.lin2(x)
         return f.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
+
+
