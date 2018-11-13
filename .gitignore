@@ -366,6 +366,8 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+.idea/
+
 # User-specific stuff
 .idea/**/workspace.xml
 .idea/**/tasks.xml
