@@ -41,7 +41,8 @@ class MovieLens:
         self.train_iter, self.test_iter, self.validation_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
             batch_size=100,
-            device=device)
+            device=device,
+            sort_key=lambda x: int(x.user))
 
         self.user.build_vocab(self.train_set)
         self.movie.build_vocab(self.train_set)
