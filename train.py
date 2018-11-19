@@ -1,5 +1,10 @@
-def accuracy(output, label):
-    return 0
+import torch
+import random
+
+
+def accuracy(output, target):
+    correct_prediction = torch.abs(target - output)
+    return torch.mean(correct_prediction.float())
 
 
 def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
@@ -20,7 +25,8 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
             val_loss /= val_length
             val_accs /= val_length
 
-            print("Epoch {}:  Loss: {:.2f}, Accuracy: {:.2f}".format(train_iter.epoch, val_loss, val_accs))
+            print("Epoch {}:  Loss: {:.2f}, Avg distance from target: {:.2f}".format(train_iter.epoch, val_loss,
+                                                                                     val_accs))
             net.train()
 
         net.train()
@@ -33,3 +39,14 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
         prev_epoch = train_iter.epoch
         if train_iter.epoch == num_epochs:
             break
+
+
+def negative_sampling(batch, num_user, device):
+    random_users = [random.randint(1, num_user) for _ in range(len(batch))]
+    rating = [0 for _ in range(len(batch))]
+
+    user_tensor = torch.tensor(random_users).to(device)
+    rating_tensor = torch.tensor(rating).to(device)
+    batch.user = user_tensor
+    batch.rating = rating_tensor
+    return batch
