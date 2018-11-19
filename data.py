@@ -13,7 +13,7 @@ class MovieLens:
     Class to handle the MovieLens data
     """
 
-    def __init__(self, device):
+    def __init__(self, device, path='./Datasets/MovieLens-Small/ratings.csv'):
         print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)
@@ -21,7 +21,7 @@ class MovieLens:
         self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
-            path='./Datasets/MovieLens-Small/ratings.csv',
+            path=path,
             format='csv',
             fields=[('user', self.user), ('movie', self.movie), ('rating', self.rating), ('timestamp', None)],
             skip_header=True,
