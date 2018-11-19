@@ -5,7 +5,6 @@ def accuracy(output, label):
 def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
     net.train()
     prev_epoch = 0
-
     for batch in train_iter:
         if train_iter.epoch != prev_epoch:
             net.eval()

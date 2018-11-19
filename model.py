@@ -13,7 +13,7 @@ class EmbeddingNet(nn.Module):
     def __init__(self, user_field, movie_field, n_factors=10, hidden=10, p1=0.5, p2=0.5):
         super().__init__()
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
+        print(self.device)
         self.movie_field = movie_field
         self.user_field = user_field
 
@@ -39,12 +39,16 @@ class EmbeddingNet(nn.Module):
 
     def get_movie_embedding(self, movies):
         np_movies = np.asarray([self.movie_field.vocab.stoi[str(movie)] for movie in movies.cpu().data.numpy()],
-                               dtype=int)
+                                   dtype=int)
+
         movie_numbers = torch.from_numpy(np_movies).to(self.device).long()
         return self.m(movie_numbers)
 
     def get_user_embedding(self, users):
-        np_users = np.asarray([self.user_field.vocab.stoi[str(user)] for user in users.cpu().data.numpy()])
+        if torch.cuda.is_available():
+            np_users = np.asarray([self.user_field.vocab.stoi[str(user)] for user in users.cpu().data.numpy()])
+        else:
+            np_users = np.asarray([self.user_field.vocab.stoi[str(user)] - 1 for user in users.cpu().data.numpy()])
         user_numbers = torch.from_numpy(np_users).to(self.device).long()
         return self.u(user_numbers)
 
