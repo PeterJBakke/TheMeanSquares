@@ -13,7 +13,7 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
 
             for val_batch in val_iter:
                 val_output = net(val_batch)
-                val_loss += criterion(val_output.view(-1), val_batch.rating) * val_batch.batch_size
+                val_loss += criterion(val_output.reshape(-1), val_batch.rating) * val_batch.batch_size
                 val_accs += accuracy(val_output, val_batch.rating) * val_batch.batch_size
                 val_length += val_batch.batch_size
 
@@ -25,7 +25,7 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
 
         net.train()
         output = net(batch)
-        batch_loss = criterion(output.view(-1), batch.rating)
+        batch_loss = criterion(output.reshape(-1), batch.rating)
         optimizer.zero_grad()
         batch_loss.backward()
         optimizer.step()

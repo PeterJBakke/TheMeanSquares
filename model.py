@@ -38,19 +38,19 @@ class EmbeddingNet(nn.Module):
         print(self)
 
     def get_movie_embedding(self, movies):
-        np_movies = np.asarray([self.movie_field.vocab.stoi[movie] for movie in movies])
-        movie_number = torch.from_numpy(np_movies)
-        return self.m(movie_number)
+        np_movies = np.asarray([self.movie_field.vocab.stoi[str(movie)] for movie in movies.cpu().data.numpy()], dtype=int)
+        movie_numbers = torch.from_numpy(np_movies).cuda().long()
+        return self.m(movie_numbers)
 
     def get_user_embedding(self, users):
-        np_users = np.asarray([self.user_field.vocab.stoi[user] for user in users])
-        user_number = torch.from_numpy(np_users)
-        return self.u(user_number)
+        np_users = np.asarray([self.user_field.vocab.stoi[str(user)] for user in users.cpu().data.numpy()])
+        user_numbers = torch.from_numpy(np_users).cuda().long()
+        return self.u(user_numbers)
 
     def forward(self, batch):
         x = torch.cat([self.get_user_embedding(batch.user), self.get_movie_embedding(batch.movie)], dim=1)
         x = self.lin1(x)
         x = self.lin2(x)
-        return f.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
+        return torch.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
 
 
