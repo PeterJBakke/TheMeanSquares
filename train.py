@@ -20,7 +20,7 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
             val_loss /= val_length
             val_accs /= val_length
 
-            print("#Epoch{}  Loss: {:.2f}, Accuracy: {:.2f}".format(train_iter.epoch, val_loss, val_accs))
+            print("Epoch {}:  Loss: {:.2f}, Accuracy: {:.2f}".format(train_iter.epoch, val_loss, val_accs))
             net.train()
 
         net.train()
@@ -31,5 +31,5 @@ def train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs
         optimizer.step()
 
         prev_epoch = train_iter.epoch
-        if train_iter.epoch > num_epochs:
+        if train_iter.epoch == num_epochs:
             break

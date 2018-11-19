@@ -7,14 +7,13 @@ import os
 from torchtext import data
 import torch
 
+
 class MovieLens:
     """
     Class to handle the MovieLens data
     """
 
-    def __init__(self):
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
+    def __init__(self, device):
         print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)

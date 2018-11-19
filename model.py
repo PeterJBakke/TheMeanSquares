@@ -3,7 +3,6 @@ Model file
 """
 import torch
 import torch.nn as nn
-from torch.nn import functional as f
 import numpy as np
 
 max_rating = 5.0
@@ -13,6 +12,7 @@ min_rating = 0.5
 class EmbeddingNet(nn.Module):
     def __init__(self, user_field, movie_field, n_factors=10, hidden=10, p1=0.5, p2=0.5):
         super().__init__()
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         self.movie_field = movie_field
         self.user_field = user_field
@@ -38,13 +38,14 @@ class EmbeddingNet(nn.Module):
         print(self)
 
     def get_movie_embedding(self, movies):
-        np_movies = np.asarray([self.movie_field.vocab.stoi[str(movie)] for movie in movies.cpu().data.numpy()], dtype=int)
-        movie_numbers = torch.from_numpy(np_movies).cuda().long()
+        np_movies = np.asarray([self.movie_field.vocab.stoi[str(movie)] for movie in movies.cpu().data.numpy()],
+                               dtype=int)
+        movie_numbers = torch.from_numpy(np_movies).to(self.device).long()
         return self.m(movie_numbers)
 
     def get_user_embedding(self, users):
         np_users = np.asarray([self.user_field.vocab.stoi[str(user)] for user in users.cpu().data.numpy()])
-        user_numbers = torch.from_numpy(np_users).cuda().long()
+        user_numbers = torch.from_numpy(np_users).to(self.device).long()
         return self.u(user_numbers)
 
     def forward(self, batch):
@@ -52,5 +53,3 @@ class EmbeddingNet(nn.Module):
         x = self.lin1(x)
         x = self.lin2(x)
         return torch.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
-
-
