@@ -1,23 +1,11 @@
 """
-Data preprocessing file
-
-Created: 2018-11-05
-Author: Peter J. Bakke
-
-Reviewed by:
-
-
-Changed by:
-
-
-
+Data pre-processing file
 """
 
 import pandas as pd
 import os
 from torchtext import data
 import torch
-
 
 class MovieLens:
     """
@@ -26,6 +14,8 @@ class MovieLens:
 
     def __init__(self):
         device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+        print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)
         self.movie = data.Field(sequential=False, use_vocab=True)
@@ -38,11 +28,11 @@ class MovieLens:
             skip_header=True,
         ).split(split_ratio=[0.7, 0.15, 0.15])
 
-        self.train_iter, self.test_iter, self.validation_iter = data.BucketIterator.splits(
+        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
             batch_size=100,
             device=device,
-            sort_key=lambda x: int(x.user))
+            sort_key=lambda x: len(x.movie))
 
         self.user.build_vocab(self.train_set)
         self.movie.build_vocab(self.train_set)
@@ -154,3 +144,5 @@ class citeulike:
 if __name__ == "__main__":
     data = MovieLens()
     train_iter = data.get_train_iter()
+    print(train_iter.device)
+    print(train_iter.epoch)
