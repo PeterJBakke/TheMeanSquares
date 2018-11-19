@@ -141,7 +141,8 @@ class citeulike:
 
 
 if __name__ == "__main__":
-    data = MovieLens()
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    data = MovieLens(device=device)
     train_iter = data.get_train_iter()
     print(train_iter.device)
     print(train_iter.epoch)
