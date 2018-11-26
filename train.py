@@ -1,9 +1,9 @@
 from types import SimpleNamespace
-
 import torch
 import random
-
 from torch.autograd import Variable
+
+from data import tokenizer
 
 
 def accuracy(output, target):
@@ -44,7 +44,7 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
             break
 
 
-def cite_u_like_train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_auth, num_epochs=5):
+def cite_u_like_train(dataset, train_iter, val_iter, net, test_iter, optimizer, criterion, num_user, num_epochs=5):
     net.train()
     prev_epoch = 0
     train_loss, train_accs, train_length = [0, 0, 0]
@@ -85,7 +85,7 @@ def cite_u_like_train(train_iter, val_iter, net, test_iter, optimizer, criterion
 
         net.train()
 
-        pos_and_neg_batch = negative_sampling(batch, num_auth)
+        pos_and_neg_batch = negative_sampling(dataset, batch, num_user)
         target_pos = Variable(torch.tensor([1 for _ in range(len(batch))]).cuda())
         target_neg = Variable(torch.tensor([0 for _ in range(len(batch))]).cuda())
 
@@ -109,15 +109,17 @@ def cite_u_like_train(train_iter, val_iter, net, test_iter, optimizer, criterion
             break
 
 
-def negative_sampling(batch, num_authors):
-    random_authors = torch.tensor(
-        [random.randint(0, num_authors) for _ in range(len(batch))]
+def negative_sampling(dataset, batch, num_users):
+    random_users = torch.tensor(
+        [random.randint(0, num_users) for _ in range(len(batch))]
     ).cuda()
 
-    author = torch.cat((batch.author, random_authors), 0).cuda()
-    text = torch.cat((batch.text, batch.text), 1).cuda()
+    text = torch.tensor([get_text(dataset, doc_id) for doc_id in batch.doc.data.cpu().numpy()]).cuda()
 
-    batch_with_negative_sampling = {'author': author, 'text': text}
+    user = torch.cat((batch.user, random_users), 0).cuda()
+    text = torch.cat((text, text), 1).cuda()
+
+    batch_with_negative_sampling = {'user': user, 'text': text}
     return SimpleNamespace(**batch_with_negative_sampling)
 
 
@@ -129,3 +131,9 @@ def print_params(net):
     for name, param in net.named_parameters():
         if param.requires_grad:
             print(name, param.data)
+
+
+def get_text(dataset, doc_id):
+    text = dataset.get_document_abstract(doc_id)
+    tokens = tokenizer(text)
+    return tokens

@@ -136,12 +136,14 @@ class citeulike:
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
             path='./Datasets/citeulike/user-info.csv',
             format='csv',
-            fields=[('user', self.user), ('doc', self.doc), ('rating', self.rating), ('timestamp', None)],
+            fields=[('id', None), ('user', self.user), ('doc', self.doc), ('rating', self.rating), ('timestamp', None)],
             skip_header=True,
         ).split(split_ratio=[0.7, 0.15, 0.15])
 
-        self.docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['citeulike.id', 'raw.title', 'raw.abstract'],
-                           dtype={'citeulike.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
+        self.docs = pd.read_csv('Datasets/citeulike/raw-data.csv',
+                                usecols=['citeulike.id', 'raw.title', 'raw.abstract'],
+                                dtype={'citeulike.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0,
+                                sep=',')
         self.docs.set_index('citeulike.id', inplace=True)
 
         self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
@@ -186,8 +188,8 @@ def tokenizer(text):  # create a tokenizer function
 
 if __name__ == "__main__":
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    data = MovieLens(device=device)
-    train_iter = data.get_train_iter()
+    dataset = citeulike(device=device)
+    train_iter = dataset.train_iter
     print(train_iter.device)
     print(train_iter.epoch)
 
