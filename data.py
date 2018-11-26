@@ -4,8 +4,11 @@ Data pre-processing file
 
 import pandas as pd
 import os
-from torchtext import data
+from torchtext import data, vocab
 import torch
+import spacy
+
+spacy_en = spacy.load('en')
 
 
 class MovieLens:
@@ -122,22 +125,55 @@ class citeulike:
 
     """
 
-    def __init__(self):
-        self.base_dir = os.getcwd()
-        self.file_user_info = os.path.join(self.base_dir, 'Datasets/citeulike/user-info.csv')
-        self.file_raw_data = os.path.join(self.base_dir, 'Datasets/citeulike/raw-data.csv')
-        self.user_info = self.load(self.file_user_info)
-        self.raw_data = self.load(self.file_raw_data)
+    def __init__(self, device):
+        print('Device: ' + str(device))
 
-    def load(self, file):
-        data = pd.read_csv(file, encoding="ISO-8859-1")
-        return data
+        self.user = data.Field(sequential=False, use_vocab=True)
+        self.doc = data.Field(sequential=False, use_vocab=True)
+        self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
-    def getUserInfo(self):
-        return self.user_info
+        self.train_set, self.validation_set, self.test_set = data.TabularDataset(
+            path='./Datasets/citeulike/user-info.csv',
+            format='csv',
+            fields=[('user', self.user), ('doc', self.doc), ('rating', self.rating), ('timestamp', None)],
+            skip_header=True,
+        ).split(split_ratio=[0.7, 0.15, 0.15])
 
-    def getRawData(self):
-        return self.raw_data
+        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set, self.test_set),
+            batch_size=100,
+            device=device,
+            sort_key=lambda x: int(x.doc))
+
+        self.user.build_vocab(self.train_set)
+        self.doc.build_vocab(self.train_set)
+
+
+def load_vectors():
+    text = data.Field(sequential=True, tokenize=tokenizer, lower=True)
+
+    dataset = data.TabularDataset(
+        path='./Datasets/citeulike/raw-data.csv',
+        format='csv',
+        fields=[
+            ('doc', None),
+            ('title', None),
+            ('citeulike-id', None),
+            ('raw-title', None),
+            ('text', text)
+        ],
+        skip_header=True)
+
+    url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
+    text.build_vocab(dataset, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+
+    vectors = text.vocab.vectors
+
+    return vectors
+
+
+def tokenizer(text):  # create a tokenizer function
+    return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
 if __name__ == "__main__":
@@ -146,3 +182,5 @@ if __name__ == "__main__":
     train_iter = data.get_train_iter()
     print(train_iter.device)
     print(train_iter.epoch)
+
+    vectors = load_vectors()
