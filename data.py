@@ -3,6 +3,7 @@ Data pre-processing file
 """
 
 import pandas as pd
+import numpy as np
 import os
 from torchtext import data, vocab
 import torch
@@ -139,6 +140,10 @@ class citeulike:
             skip_header=True,
         ).split(split_ratio=[0.7, 0.15, 0.15])
 
+        self.docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['citeulike.id', 'raw.title', 'raw.abstract'],
+                           dtype={'citeulike.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
+        self.docs.set_index('citeulike.id', inplace=True)
+
         self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
             batch_size=100,
@@ -147,6 +152,9 @@ class citeulike:
 
         self.user.build_vocab(self.train_set)
         self.doc.build_vocab(self.train_set)
+
+    def get_document_abstract(self, docID):
+        return self.docs.loc[docID]['raw.abstract']
 
 
 def load_vectors():
