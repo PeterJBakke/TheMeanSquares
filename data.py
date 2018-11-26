@@ -130,7 +130,7 @@ class citeulike:
         print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)
-        self.doc = data.Field(sequential=False, use_vocab=True)
+        self.doc = data.Field(sequential=False, use_vocab=False)
         self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
@@ -138,19 +138,21 @@ class citeulike:
             format='csv',
             fields=[('id', None), ('user', self.user), ('doc', self.doc), ('rating', self.rating), ('timestamp', None)],
             skip_header=True,
-        ).split(split_ratio=[0.7, 0.15, 0.15])
+        ).split(split_ratio=[0.9, 0.05, 0.05])
 
         self.docs = pd.read_csv('Datasets/citeulike/raw-data.csv',
-                                usecols=['citeulike.id', 'raw.title', 'raw.abstract'],
-                                dtype={'citeulike.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0,
+                                usecols=['doc.id', 'raw.title', 'raw.abstract'],
+                                dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0,
                                 sep=',')
-        self.docs.set_index('citeulike.id', inplace=True)
+
+        self.docs.set_index('doc.id', inplace=True)
 
         self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
             batch_size=100,
+            # shuffle=True,
             device=device,
-            sort_key=lambda x: int(x.doc))
+            sort_key=lambda x: int(x.user))
 
         self.user.build_vocab(self.train_set)
         self.doc.build_vocab(self.train_set)
@@ -159,7 +161,7 @@ class citeulike:
         return self.docs.loc[docID]['raw.abstract']
 
 
-def load_vectors():
+def load_vocab():
     text = data.Field(sequential=True, tokenize=tokenizer, lower=True)
 
     dataset = data.TabularDataset(
@@ -177,9 +179,7 @@ def load_vectors():
     url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
     text.build_vocab(dataset, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
 
-    vectors = text.vocab.vectors
-
-    return vectors
+    return text.vocab
 
 
 def tokenizer(text):  # create a tokenizer function
@@ -193,4 +193,4 @@ if __name__ == "__main__":
     print(train_iter.device)
     print(train_iter.epoch)
 
-    vectors = load_vectors()
+    vocab = load_vocab()

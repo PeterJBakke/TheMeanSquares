@@ -5,7 +5,7 @@ Main
 import torch
 from torch import optim, nn
 from model import MovieLensNet, CiteULikeModel
-from data import MovieLens, citeulike, load_vectors
+from data import MovieLens, citeulike, load_vocab
 from train import movie_lens_train, cite_u_like_train
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
@@ -30,7 +30,8 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 citeulike = citeulike(device=device)
-text_vectors = load_vectors()
+text_vocab = load_vocab()
+text_vectors = text_vocab.vectors
 num_users = len(citeulike.user.vocab.itos)
 
 train_iter = citeulike.train_iter
@@ -44,4 +45,5 @@ net = CiteULikeModel(text_vectors=text_vectors, user_field=user_field, user_dim=
 opt = optim.Adam(net.parameters(), lr=1e-4, weight_decay=1e-5)
 criterion = nn.MSELoss()
 cite_u_like_train(citeulike, train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
-                  net=net, optimizer=opt, criterion=criterion, num_epochs=50, num_user=num_users)
+                  net=net, optimizer=opt, criterion=criterion, num_epochs=50, num_user=num_users,
+                  text_stoi=text_vocab.stoi)
