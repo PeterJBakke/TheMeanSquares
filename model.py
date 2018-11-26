@@ -3,6 +3,7 @@ Model file
 """
 import torch
 import torch.nn as nn
+import numpy as np
 
 max_rating = 5.0
 min_rating = 0.5
