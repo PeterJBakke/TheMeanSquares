@@ -8,6 +8,8 @@ import numpy as np
 max_rating = 5.0
 min_rating = 0.5
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 
 class MovieLensNet(nn.Module):
     def __init__(self, user_field, movie_field, device, n_factors=10, hidden=10, p1=0.5, p2=0.5):
@@ -136,7 +138,7 @@ class LstmNet(nn.Module):
 
         num_author = len(user_field.vocab.freqs)
         self.author_embedding = nn.Embedding(num_author, user_dim)
-        self.author_embedding.weight.data.uniform_(0, 0.1)
+        self.author_embedding.weight.data.uniform_(0, 0.01)
 
         self.hidden_dim = hidden_dim
         self.lstm_layers = lstm_layers

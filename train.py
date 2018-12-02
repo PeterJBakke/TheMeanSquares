@@ -76,16 +76,18 @@ def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer
 
         if train_iter.epoch != prev_epoch:
             net.eval()
-            val_loss, val_accs, val_length = [0, 0, 0]
+            val_loss, val_accs, val_err, val_length = [0, 0, 0, 0]
 
             for val_batch in val_iter:
                 val_output = net(val_batch).reshape(-1)
                 val_target = Variable(torch.tensor([1 for _ in range(len(val_batch))]).float().cuda())
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
+                val_err += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
                 val_accs += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
                 val_length += val_batch.batch_size
 
             val_loss /= val_length
+            val_err /= val_length
             val_accs /= val_length
             val_res.append(val_accs)
 
@@ -93,8 +95,8 @@ def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer
                 "Epoch {}: Train loss: {:.2f},  Train accs: {:.2f}, Train avg error: {:.2f}"
                     .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), np.mean(train_error)))
             print(
-                "          Validation loss: {:.2f}, Validation avg error: {:.2f}"
-                    .format(val_loss, val_accs))
+                "          Validation loss: {:.2f}, Validation accs: {:.2f}, Validation avg error: {:.2f}"
+                    .format(val_loss, 1.0 - val_accs, val_err))
             print()
             train_loss = []
             train_error = []
