@@ -10,6 +10,7 @@ import torch
 import spacy
 
 spacy_en = spacy.load('en')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class MovieLens:
@@ -126,7 +127,7 @@ class citeulike:
 
     """
 
-    def __init__(self, device):
+    def __init__(self):
         print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)
@@ -182,13 +183,50 @@ def load_vocab():
     return text.vocab
 
 
+class citeulike_merged:
+    """
+    Class to handle the Cite-U-Like data
+
+    Predict:
+    match_status
+
+    """
+
+    def __init__(self):
+        print('Device: ' + str(device))
+
+        self.user = data.Field(sequential=False, use_vocab=True)
+        self.doc_title = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
+        self.doc_abstract = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
+
+        self.train_set, self.validation_set, self.test_set = data.TabularDataset(
+            path='./Datasets/citeulike/user-info.csv',
+            format='csv',
+            fields=[('id', None), ('user', self.user), ('doc_title', self.doc_title),
+                    ('doc_abstract', self.doc_abstract)],
+            skip_header=True,
+        ).split(split_ratio=[0.8, 0.1, 0.1])
+
+        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set, self.test_set),
+            batch_size=100,
+            # shuffle=True,
+            device=device,
+            sort_key=lambda x: int(x.user))
+
+        self.user.build_vocab(self.train_set)
+
+        url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
+        self.doc_abstract.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        self.doc_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+
+
 def tokenizer(text):  # create a tokenizer function
     return [tok.text for tok in spacy_en.tokenizer(text)]
 
 
 if __name__ == "__main__":
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    dataset = citeulike(device=device)
+    dataset = citeulike()
     train_iter = dataset.train_iter
     print(train_iter.device)
     print(train_iter.epoch)

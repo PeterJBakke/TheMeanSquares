@@ -5,6 +5,8 @@ from torch.autograd import Variable
 
 from data import tokenizer
 
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
 
 def accuracy(output, target):
     correct_prediction = torch.abs(target - output)
@@ -60,7 +62,7 @@ def cite_u_like_train(dataset, train_iter, val_iter, net, test_iter, optimizer, 
             for val_batch in val_iter:
                 val_input = load_text(dataset, val_batch, text_stoi)
                 val_output = net(val_input).reshape(-1)
-                val_target = Variable(torch.tensor([1 for _ in range(len(val_batch))]).float().cuda())
+                val_target = Variable(torch.tensor([1 for _ in range(len(val_batch))]).float().to(device))
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
                 val_accs += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
                 val_length += val_batch.batch_size
@@ -83,11 +85,11 @@ def cite_u_like_train(dataset, train_iter, val_iter, net, test_iter, optimizer, 
 
         positive_input = load_text(dataset, batch, text_stoi)
         pos_and_neg_batch = negative_sampling(positive_input, num_user)
-        target_pos = Variable(torch.tensor([1 for _ in range(len(batch))]).cuda())
-        target_neg = Variable(torch.tensor([0 for _ in range(len(batch))]).cuda())
+        target_pos = Variable(torch.tensor([1 for _ in range(len(batch))]).to(device))
+        target_neg = Variable(torch.tensor([0 for _ in range(len(batch))]).to(device))
 
         output = net(pos_and_neg_batch).reshape(-1)
-        target = torch.cat((target_pos, target_neg), 0).float().cuda()
+        target = torch.cat((target_pos, target_neg), 0).float().to(device)
         batch_loss = criterion(output, target)
         optimizer.zero_grad()
         batch_loss.backward()
@@ -110,7 +112,7 @@ def cite_u_like_train(dataset, train_iter, val_iter, net, test_iter, optimizer, 
 def load_text(dataset, batch, text_stoi):
     texts = [get_text(dataset, doc_id, text_stoi) for doc_id in batch.doc.data.cpu().numpy()]
     longest_length = max([len(text) for text in texts])
-    texts = torch.tensor(pad_list(texts, longest_length)).cuda()
+    texts = torch.tensor(pad_list(texts, longest_length)).to(device)
     texts = torch.transpose(texts, 0, 1)
 
     batch_with_negative_sampling = {'user': batch.user, 'text': texts}
@@ -120,10 +122,10 @@ def load_text(dataset, batch, text_stoi):
 def negative_sampling(batch, num_users):
     random_users = torch.tensor(
         [random.randint(0, num_users) for _ in range(len(batch.user))]
-    ).cuda()
+    ).to(device)
 
-    user = torch.cat((batch.user, random_users), 0).cuda()
-    text = torch.cat((batch.text, batch.text), 1).cuda()
+    user = torch.cat((batch.user, random_users), 0).to(device)
+    text = torch.cat((batch.text, batch.text), 1).to(device)
 
     batch_with_negative_sampling = {'user': user, 'text': text}
     return SimpleNamespace(**batch_with_negative_sampling)

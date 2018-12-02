@@ -29,7 +29,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 #       net=net, optimizer=opt, criterion=criterion, num_epochs=50)
 
 
-citeulike = citeulike(device=device)
+citeulike = citeulike()
 text_vocab = load_vocab()
 text_vectors = text_vocab.vectors
 num_users = len(citeulike.user.vocab.itos)
@@ -43,7 +43,7 @@ doc_field = citeulike.doc
 
 net = CiteULikeModel(text_vectors=text_vectors, user_field=user_field, user_dim=10).to(device)
 opt = optim.Adam(net.parameters(), lr=1e-4, weight_decay=1e-5)
-criterion = nn.MSELoss()
+criterion = nn.BCELoss()
 cite_u_like_train(citeulike, train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
                   net=net, optimizer=opt, criterion=criterion, num_epochs=50, num_user=num_users,
                   text_stoi=text_vocab.stoi)

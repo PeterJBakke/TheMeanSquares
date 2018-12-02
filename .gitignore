@@ -447,3 +447,7 @@ Datasets/talentfox_match_data/readme\.md
 
 
 \.vector_cache/
+
+raw-data\.csv
+
+user-info\.csv
