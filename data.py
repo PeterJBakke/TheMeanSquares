@@ -192,32 +192,39 @@ class citeulike_merged:
 
     """
 
-    def __init__(self):
+    def __init__(self, batch_size=100):
         print('Device: ' + str(device))
 
         self.user = data.Field(sequential=False, use_vocab=True)
-        self.doc_title = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
-        self.doc_abstract = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
+        self.doc_title = data.Field(sequential=True, tokenize=tokenizer, lower=True)
+        # self.doc_abstract = data.Field(sequential=True, tokenize=tokenizer, lower=True)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset(
-            path='./Datasets/citeulike/user-info.csv',
+            path='./Datasets/citeulike/citeulike_merged_short.csv',
             format='csv',
-            fields=[('id', None), ('user', self.user), ('doc_title', self.doc_title),
-                    ('doc_abstract', self.doc_abstract)],
+            fields=[
+                ('id1', None),
+                ('id2', None),
+                ('user', self.user),
+                ('doc_id', None),
+                ('rating', None),
+                ('doc_title', self.doc_title),
+                # ('doc_abstract', self.doc_abstract)
+            ],
             skip_header=True,
         ).split(split_ratio=[0.8, 0.1, 0.1])
 
         self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
-            batch_size=100,
-            # shuffle=True,
+            batch_size=batch_size,
+            shuffle=True,
             device=device,
             sort_key=lambda x: int(x.user))
 
         self.user.build_vocab(self.train_set)
 
         url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
-        self.doc_abstract.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        # self.doc_abstract.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
         self.doc_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
 
 

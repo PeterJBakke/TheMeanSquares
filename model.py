@@ -125,7 +125,7 @@ class CiteULikeModel(nn.Module):
 
 
 class LstmNet(nn.Module):
-    def __init__(self, article_field, author_field, author_dim=10, hidden_dim=50, lstm_layers=5):
+    def __init__(self, article_field, user_field, user_dim=50, hidden_dim=50, lstm_layers=5):
         super(LstmNet, self).__init__()
         article_vectors = article_field.vocab.vectors
         num_embeddings = article_vectors.size()[0]
@@ -134,16 +134,16 @@ class LstmNet(nn.Module):
         self.article_embeddings = nn.Embedding(num_embeddings, embedding_dim)
         self.article_embeddings.weight.data.copy_(article_vectors)
 
-        num_author = len(author_field.vocab.freqs)
-        self.author_embedding = nn.Embedding(num_author, author_dim)
-        self.author_embedding.weight.data.uniform_(0, 200)
+        num_author = len(user_field.vocab.freqs)
+        self.author_embedding = nn.Embedding(num_author, user_dim)
+        self.author_embedding.weight.data.uniform_(0, 0.1)
 
         self.hidden_dim = hidden_dim
         self.lstm_layers = lstm_layers
         self.lstm = nn.LSTM(input_size=embedding_dim, hidden_size=hidden_dim, num_layers=lstm_layers)
 
         self.linear = nn.Sequential(
-            nn.Linear(in_features=(author_dim + hidden_dim),
+            nn.Linear(in_features=(user_dim + hidden_dim),
                       out_features=1,
                       bias=True),
             nn.ReLU(),
@@ -156,14 +156,17 @@ class LstmNet(nn.Module):
     def forward(self, x):
         batch_size = len(x.user)
         user = self.author_embedding(x.user)
-        title = self.article_embeddings(x.title)
+        text = self.article_embeddings(x.doc_title)
 
         hidden = self.init_hidden(batch_size)
 
-        _, (lstm_hidden, lstm_state) = self.lstm(title, hidden)
+        _, (lstm_hidden, lstm_state) = self.lstm(text, hidden)
 
-        x = torch.cat((user, lstm_state[-1]), 1).cuda()
-        x = self.linear(x)
+        # x = torch.cat((user, lstm_state[-1]), 1).cuda()
+        # x = self.linear(x)
+
+        x = (user * lstm_state[-1]).sum(1)
+
         out = torch.sigmoid(x)
 
         return out
