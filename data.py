@@ -161,6 +161,19 @@ class citeulike:
     def get_document_abstract(self, docID):
         return self.docs.loc[docID]['raw.abstract']
 
+    def to_csv_citeulike():
+        docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['doc.id', 'raw.title', 'raw.abstract'],
+                           dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
+        users = pd.read_csv('Datasets/citeulike/user-info.csv', header=0, sep=',')
+        docs.set_index('doc.id', inplace=True)
+        titles = []
+        abstracts = []
+        for index, row in users.iterrows():
+            titles.append(docs.loc[row['doc.id']]['raw.title'])
+            abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+        users['raw_titles'] = titles
+        users['raw_abstract'] = abstracts
+        users.to_csv('Datasets/citeulike/data.csv')
 
 def load_vocab():
     text = data.Field(sequential=True, tokenize=tokenizer, lower=True)
