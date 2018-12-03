@@ -5,8 +5,8 @@ Main
 import torch
 from torch import optim, nn
 from model import MovieLensNet, CiteULikeModel, LstmNet
-from data import MovieLens, citeulike, load_vocab, citeulike_merged
-from train import movie_lens_train, train_with_negative_sampling, train_without_negative_sampling
+from data import MovieLens, citeulike
+from train import movie_lens_train, train_with_negative_sampling
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -51,8 +51,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 ##############################################################
 
-citeulike = citeulike_merged(batch_size=200)
-num_users = len(citeulike.user.vocab.itos)-1
+citeulike = citeulike(batch_size=200)
 
 train_iter = citeulike.train_iter
 test_iter = citeulike.test_iter
@@ -64,5 +63,5 @@ title_field = citeulike.doc_title
 net = LstmNet(article_field=title_field, user_field=user_field).to(device)
 opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
-train_without_negative_sampling(train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
-                             net=net, optimizer=opt, criterion=criterion, num_epochs=50, num_user=num_users)
+train_with_negative_sampling(train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
+                                net=net, optimizer=opt, criterion=criterion, num_epochs=50)

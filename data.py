@@ -128,122 +128,6 @@ class citeulike:
 
     """
 
-    def __init__(self):
-        print('Device: ' + str(device))
-
-        self.user = data.Field(sequential=False, use_vocab=True)
-        self.doc = data.Field(sequential=False, use_vocab=False)
-        self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
-
-        self.train_set, self.validation_set, self.test_set = data.TabularDataset(
-            path='./Datasets/citeulike/user-info.csv',
-            format='csv',
-            fields=[('id', None), ('user', self.user), ('doc', self.doc), ('rating', self.rating), ('timestamp', None)],
-            skip_header=True,
-        ).split(split_ratio=[0.9, 0.05, 0.05])
-
-        self.docs = pd.read_csv('Datasets/citeulike/raw-data.csv',
-                                usecols=['doc.id', 'raw.title', 'raw.abstract'],
-                                dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0,
-                                sep=',')
-
-        self.docs.set_index('doc.id', inplace=True)
-
-        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
-            (self.train_set, self.validation_set, self.test_set),
-            batch_size=100,
-            # shuffle=True,
-            device=device,
-            sort_key=lambda x: len(x.user))
-
-        self.user.build_vocab(self.train_set)
-        self.doc.build_vocab(self.train_set)
-
-    def get_document_abstract(self, docID):
-        return self.docs.loc[docID]['raw.abstract']
-
-    def to_csv_citeulike(self):
-        docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['doc.id', 'raw.title', 'raw.abstract'],
-                           dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
-        users = pd.read_csv('Datasets/citeulike/user-info.csv', usecols=['user.id', 'doc.id', 'rating'], header=0,
-                            sep=',')
-        docs.set_index('doc.id', inplace=True)
-        titles, abstracts, users_list, ratings, docs_list = [], [], [], [], []
-        test_titles, test_abstracts, test_users_list, test_ratings, test_docs_list = [], [], [], [], []
-        val_titles, val_abstracts, val_users_list, val_ratings, val_docs_list = [], [], [], [], []
-        cnt = 0
-        for index, row in users.iterrows():
-            cnt += 1
-            if cnt % 9 == 0:
-                test_titles.append(docs.loc[row['doc.id']]['raw.title'])
-                test_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-                test_users_list.append(row['user.id'] - 1)
-                test_ratings.append(1)
-                test_docs_list.append(row['doc.id'])
-                continue
-            if cnt % 8 == 0:
-                val_titles.append(docs.loc[row['doc.id']]['raw.title'])
-                val_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-                val_users_list.append(row['user.id'] - 1)
-                val_ratings.append(1)
-                val_docs_list.append(row['doc.id'])
-                continue
-
-            titles.append(docs.loc[row['doc.id']]['raw.title'])
-            abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-            users_list.append(row['user.id'] - 1)
-            ratings.append(row['rating'])
-            docs_list.append(row['doc.id'])
-            titles.append(docs.loc[row['doc.id']]['raw.title'])
-            abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-            users_list.append(randint(0, 55))
-            ratings.append(0)
-            docs_list.append(row['doc.id'])
-
-        d = {'user.id': users_list, 'doc.id': docs_list, 'rating': ratings, 'raw.title': titles,
-             'raw.abstract': abstracts}
-        df = pd.DataFrame(data=d)
-        df.to_csv('Datasets/citeulike/train_data.csv')
-        d = {'user.id': val_users_list, 'doc.id': val_docs_list, 'rating': val_ratings, 'raw.title': val_titles,
-             'raw.abstract': val_abstracts}
-        df = pd.DataFrame(data=d)
-        df.to_csv('Datasets/citeulike/val_data.csv')
-        d = {'user.id': test_users_list, 'doc.id': test_docs_list, 'rating': test_ratings, 'raw.title': test_titles,
-             'raw.abstract': test_abstracts}
-        df = pd.DataFrame(data=d)
-        df.to_csv('Datasets/citeulike/test_data.csv')
-
-
-def load_vocab():
-    text = data.Field(sequential=True, tokenize=tokenizer, lower=True)
-
-    dataset = data.TabularDataset(
-        path='./Datasets/citeulike/raw-data.csv',
-        format='csv',
-        fields=[
-            ('doc', None),
-            ('title', None),
-            ('citeulike-id', None),
-            ('raw-title', None),
-            ('text', text)
-        ],
-        skip_header=True)
-
-    url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
-    text.build_vocab(dataset, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
-
-    return text.vocab
-
-
-class citeulike_merged:
-    """
-    Class to handle the Cite-U-Like data
-
-    Predict:
-    match_status
-
-    """
-
     def __init__(self, batch_size=100):
         print('Device: ' + str(device))
 
@@ -285,8 +169,56 @@ class citeulike_merged:
         self.doc_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
 
 
-def tokenizer(text):  # create a tokenizer function
-    return [tok.text for tok in spacy_en.tokenizer(text)]
+def to_csv_citeulike(self):
+    docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['doc.id', 'raw.title', 'raw.abstract'],
+                       dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
+    users = pd.read_csv('Datasets/citeulike/user-info.csv', usecols=['user.id', 'doc.id', 'rating'], header=0,
+                        sep=',')
+    docs.set_index('doc.id', inplace=True)
+    titles, abstracts, users_list, ratings, docs_list = [], [], [], [], []
+    test_titles, test_abstracts, test_users_list, test_ratings, test_docs_list = [], [], [], [], []
+    val_titles, val_abstracts, val_users_list, val_ratings, val_docs_list = [], [], [], [], []
+    cnt = 0
+    for index, row in users.iterrows():
+        cnt += 1
+        if cnt % 9 == 0:
+            test_titles.append(docs.loc[row['doc.id']]['raw.title'])
+            test_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+            test_users_list.append(row['user.id'] - 1)
+            test_ratings.append(1)
+            test_docs_list.append(row['doc.id'])
+            continue
+        if cnt % 8 == 0:
+            val_titles.append(docs.loc[row['doc.id']]['raw.title'])
+            val_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+            val_users_list.append(row['user.id'] - 1)
+            val_ratings.append(1)
+            val_docs_list.append(row['doc.id'])
+            continue
+
+        titles.append(docs.loc[row['doc.id']]['raw.title'])
+        abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+        users_list.append(row['user.id'] - 1)
+        ratings.append(row['rating'])
+        docs_list.append(row['doc.id'])
+        titles.append(docs.loc[row['doc.id']]['raw.title'])
+        abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+        users_list.append(randint(0, 55))
+        ratings.append(0)
+        docs_list.append(row['doc.id'])
+
+    d = {'user.id': users_list, 'doc.id': docs_list, 'rating': ratings, 'raw.title': titles,
+         'raw.abstract': abstracts}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/citeulike/train_data.csv')
+    d = {'user.id': val_users_list, 'doc.id': val_docs_list, 'rating': val_ratings, 'raw.title': val_titles,
+         'raw.abstract': val_abstracts}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/citeulike/val_data.csv')
+    d = {'user.id': test_users_list, 'doc.id': test_docs_list, 'rating': test_ratings, 'raw.title': test_titles,
+         'raw.abstract': test_abstracts}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/citeulike/test_data.csv')
 
 
 if __name__ == "__main__":
