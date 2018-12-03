@@ -169,7 +169,7 @@ class citeulike:
         self.doc_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
 
 
-def to_csv_citeulike():
+def to_csv_citeulike(total=5000):
     docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['doc.id', 'raw.title', 'raw.abstract'],
                        dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
     users = pd.read_csv('Datasets/citeulike/user-info.csv', usecols=['user.id', 'doc.id', 'rating'], header=0,
@@ -181,6 +181,8 @@ def to_csv_citeulike():
     cnt = 0
     for index, row in users.iterrows():
         cnt += 1
+        if cnt == total:
+            break
         if cnt % 9 == 0:
             test_titles.append(docs.loc[row['doc.id']]['raw.title'])
             test_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
