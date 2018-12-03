@@ -164,16 +164,25 @@ class citeulike:
     def to_csv_citeulike():
         docs = pd.read_csv('Datasets/citeulike/raw-data.csv', usecols=['doc.id', 'raw.title', 'raw.abstract'],
                            dtype={'doc.id': np.int32, 'raw.title': str, 'raw.abstract': str}, header=0, sep=',')
-        users = pd.read_csv('Datasets/citeulike/user-info.csv', header=0, sep=',')
+        users = pd.read_csv('Datasets/citeulike/user-info.csv', usecols=['user.id', 'doc.id', 'rating'], header=0,
+                            sep=',')
         docs.set_index('doc.id', inplace=True)
         titles = []
         abstracts = []
+        users_list = []
+        docs_list = []
+        cnt = 0
         for index, row in users.iterrows():
+            cnt += 1
             titles.append(docs.loc[row['doc.id']]['raw.title'])
             abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-        users['raw_titles'] = titles
-        users['raw_abstract'] = abstracts
-        users.to_csv('Datasets/citeulike/data.csv')
+            users_list.append(row['user.id'])
+            docs_list.append(row['doc.id'])
+            if cnt == 5000:
+                break
+        d = {'user.id': users_list, 'doc.id': docs_list, 'raw.title': titles, 'raw.abstract': abstracts}
+        df = pd.DataFrame(data=d)
+        df.to_csv('Datasets/citeulike/data.csv')
 
 def load_vocab():
     text = data.Field(sequential=True, tokenize=tokenizer, lower=True)
