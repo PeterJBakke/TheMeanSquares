@@ -179,6 +179,7 @@ def to_csv_citeulike(total=0):
     test_titles, test_abstracts, test_users_list, test_ratings, test_docs_list = [], [], [], [], []
     val_titles, val_abstracts, val_users_list, val_ratings, val_docs_list = [], [], [], [], []
     cnt = 0
+    max_user = users.iloc[-1]['user.id'] if total is 0 else users.iloc[total]['user.id']
     for index, row in users.iterrows():
         cnt += 1
         if total is not 0:
@@ -206,7 +207,7 @@ def to_csv_citeulike(total=0):
         docs_list.append(row['doc.id'])
         titles.append(docs.loc[row['doc.id']]['raw.title'])
         abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-        users_list.append(randint(0, 55))
+        users_list.append(randint(0, max_user))
         ratings.append(0)
         docs_list.append(row['doc.id'])
 
