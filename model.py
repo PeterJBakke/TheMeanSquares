@@ -4,6 +4,7 @@ Model file
 import torch
 import torch.nn as nn
 import numpy as np
+import torch.nn.utils.rnn as rnn
 
 max_rating = 5.0
 min_rating = 0.5
@@ -151,18 +152,16 @@ class LstmNet(nn.Module):
             nn.ReLU(),
         )
 
-    def init_hidden(self, batch_size):
-        return (torch.zeros(self.lstm_layers, batch_size, self.hidden_dim).cuda(),
-                torch.zeros(self.lstm_layers, batch_size, self.hidden_dim).cuda())
-
-    def forward(self, x):
+    def forward(self, x, lengths):
         batch_size = len(x.user)
         user = self.author_embedding(x.user)
         text = self.article_embeddings(x.doc_title)
 
-        hidden = self.init_hidden(batch_size)
+        ## Packing and padding
+        packed = rnn.pack_padded_sequence(text, lengths)
+        lstm_out, (lstm_hidden, lstm_state) = self.lstm(packed)
+        padded, lengths = rnn.pad_packed_sequence(lstm_out)
 
-        _, (lstm_hidden, lstm_state) = self.lstm(text, hidden)
 
         # x = torch.cat((user, lstm_state[-1]), 1).cuda()
         # x = self.linear(x)
