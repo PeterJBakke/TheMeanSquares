@@ -152,10 +152,6 @@ class LstmNet(nn.Module):
             nn.ReLU(),
         )
 
-    def init_hidden(self, batch_size):
-        return (torch.zeros(self.lstm_layers, batch_size, self.hidden_dim).to(device),
-                torch.zeros(self.lstm_layers, batch_size, self.hidden_dim).to(device))
-
     def forward(self, x, lengths):
         batch_size = len(x.user)
         user = self.author_embedding(x.user)
@@ -163,8 +159,7 @@ class LstmNet(nn.Module):
 
         ## Packing and padding
         packed = rnn.pack_padded_sequence(text, lengths)
-        hidden = self.init_hidden(batch_size)
-        lstm_out, (lstm_hidden, lstm_state) = self.lstm(packed, hidden)
+        lstm_out, (lstm_hidden, lstm_state) = self.lstm(packed)
         padded, lengths = rnn.pad_packed_sequence(lstm_out)
 
 

@@ -168,9 +168,7 @@ def train_without_negative_sampling(train_iter, val_iter, net, test_iter, optimi
     train_error = []
     train_accs = []
     val_res = []
-    cnt = 0
     for batch in train_iter:
-        cnt += 1
         users,(docs, lengths), ratings = batch.user, batch.doc_title, batch.ratings
         net.train()
 

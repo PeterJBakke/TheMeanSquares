@@ -174,14 +174,12 @@ class citeulike:
         cnt = 0
         for index, row in users.iterrows():
             cnt += 1
-            if cnt == 3000:
-                break
             if cnt % 9 == 0:
-                val_titles.append(docs.loc[row['doc.id']]['raw.title'])
-                val_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-                val_users_list.append(row['user.id'] - 1)
-                val_ratings.append(1)
-                val_docs_list.append(row['doc.id'])
+                test_titles.append(docs.loc[row['doc.id']]['raw.title'])
+                test_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
+                test_users_list.append(row['user.id'] - 1)
+                test_ratings.append(1)
+                test_docs_list.append(row['doc.id'])
                 continue
             if cnt % 8 == 0:
                 val_titles.append(docs.loc[row['doc.id']]['raw.title'])
