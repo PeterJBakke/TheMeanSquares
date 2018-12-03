@@ -277,7 +277,8 @@ class citeulike_merged:
             shuffle=True,
             device=device,
             sort_key=lambda x: len(x.doc_title),
-            sort_within_batch=True)
+            sort_within_batch=True,
+            repeat=True)
 
         self.user.build_vocab(self.train_set)
         self.ratings.build_vocab(self.train_set)

@@ -51,7 +51,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 ##############################################################
 
-citeulike = citeulike_merged(batch_size=20)
+citeulike = citeulike_merged(batch_size=200)
 num_users = len(citeulike.user.vocab.itos)-1
 
 train_iter = citeulike.train_iter
