@@ -103,6 +103,7 @@ def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer
             # plot_res(train_res, val_res, train_iter.epoch)
 
             net.train()
+
         prev_epoch = train_iter.epoch
         if train_iter.epoch == num_epochs:
             break
