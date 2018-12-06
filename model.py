@@ -13,30 +13,31 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class MovieLensNet(nn.Module):
-    def __init__(self, user_field, movie_field, device, n_factors=10, hidden=10, p1=0.5, p2=0.5):
-        super().__init__()
+    def __init__(self, user_field, movie_field, device, n_factors=10, hidden1=10, p1=0.3, p2=0.3):
+        super(MovieLensNet, self).__init__()
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(self.device)
         self.movie_field = movie_field
         self.user_field = user_field
 
         n_users = len(self.user_field.vocab.freqs)
+        print(n_users)
         self.u = nn.Embedding(n_users, n_factors)
-        self.u.weight.data.uniform_(0, 0.05)
+        self.u.weight.data.uniform_(0, 0.1)
 
         n_movies = len(self.movie_field.vocab.freqs)
         self.m = nn.Embedding(n_movies, n_factors)
-        self.m.weight.data.uniform_(0, 0.05)
+        self.m.weight.data.uniform_(0, 0.1)
 
         self.lin1 = nn.Sequential(
             nn.Dropout(p1),
-            nn.Linear(n_factors * 2, hidden),
+            nn.Linear(n_factors * 2, hidden1),
             nn.ReLU(),
         )
 
         self.lin2 = nn.Sequential(
             nn.Dropout(p2),
-            nn.Linear(hidden, 1),
+            nn.Linear(hidden1, 1),
         )
         print(self)
 
@@ -51,8 +52,9 @@ class MovieLensNet(nn.Module):
         if torch.cuda.is_available():
             np_users = np.asarray([self.user_field.vocab.stoi[str(user)] for user in users.cpu().data.numpy()])
         else:
-            np_users = np.asarray([self.user_field.vocab.stoi[str(user)] - 1 for user in users.cpu().data.numpy()])
+            np_users = np.asarray([self.user_field.vocab.stoi[str(user)] - 0 for user in users.cpu().data.numpy()])
         user_numbers = torch.from_numpy(np_users).to(self.device).long()
+        #print(max(self.u(user_numbers)))
         return self.u(user_numbers)
 
     def forward(self, batch):

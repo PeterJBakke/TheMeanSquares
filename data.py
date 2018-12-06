@@ -13,6 +13,69 @@ from random import randint
 spacy_en = spacy.load('en')
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+class MovieLens2:
+    """
+    New version of MovieLens data handler
+    """
+
+    def __init__(self, batch_size=100):
+        self.user = data.Field(sequential=False, use_vocab=True, unk_token=None)
+        self.movie = data.Field(sequential=False, use_vocab=True)
+        self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
+
+        self.train_set, self.validation_set, self.test_set = data.TabularDataset.splits(
+            path='./Datasets/MovieLens-Small/',
+            train='train_data.csv',
+            validation='val_data.csv',
+            test='test_data.csv',
+            format='csv',
+            fields=[
+                ('user', self.user),
+                ('movie', self.movie),
+                ('rating', self.rating),
+            ],
+            skip_header=True
+        )
+
+        self.train_iter, self.validation_iter, self.test_iter = data.Iterator.splits(
+            (self.train_set, self.validation_set, self.test_set),
+            batch_size=batch_size,
+            shuffle=True,
+            device=device,
+            sort_key=lambda x: data.interleave_keys(len(x.user), len(x.movie)),
+            sort_within_batch=True,
+            repeat=True)
+
+        # self.train_iter = data.Iterator.splits(
+        #     self.train_set,
+        #     batch_size=batch_size,
+        #     shuffle=True,
+        #     device=device,
+        #     sort_key=lambda x: data.interleave_keys(len(x.user), len(x.movie)),
+        #     sort_within_batch=True,
+        #     repeat=True)
+        # self.validation_iter = data.Iterator.splits(
+        #     self.validation_set,
+        #     batch_size=batch_size,
+        #     shuffle=True,
+        #     device=device,
+        #     sort_key=lambda x: data.interleave_keys(len(x.user), len(x.movie)),
+        #     sort_within_batch=True,
+        #     repeat=False)
+        # self.test_iter = data.Iterator.splits(
+        #     self.test_set,
+        #     batch_size=batch_size,
+        #     shuffle=True,
+        #     device=device,
+        #     sort_key=lambda x: data.interleave_keys(len(x.user), len(x.movie)),
+        #     sort_within_batch=True,
+        #     repeat=False)
+
+        self.user.build_vocab(self.train_set)
+        self.movie.build_vocab(self.train_set)
+        self.rating.build_vocab(self.train_set)
+
+
 
 class MovieLens:
     """
@@ -22,7 +85,7 @@ class MovieLens:
     def __init__(self, device, path='./Datasets/MovieLens-Small/ratings.csv'):
         print('Device: ' + str(device))
 
-        self.user = data.Field(sequential=False, use_vocab=True)
+        self.user = data.Field(sequential=False, use_vocab=True, unk_token=None)
         self.movie = data.Field(sequential=False, use_vocab=True)
         self.rating = data.Field(sequential=False, use_vocab=False, dtype=torch.float)
 
@@ -31,13 +94,16 @@ class MovieLens:
             format='csv',
             fields=[('user', self.user), ('movie', self.movie), ('rating', self.rating), ('timestamp', None)],
             skip_header=True,
-        ).split(split_ratio=[0.7, 0.15, 0.15])
+        ).split(split_ratio=[0.9, 0.05, 0.05])
 
         self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
             (self.train_set, self.validation_set, self.test_set),
-            batch_size=100,
+            batch_size=128,
+            shuffle=True,
             device=device,
-            sort_key=lambda x: len(x.movie))
+            sort_key=lambda x: len(x.movie),
+            repeat=True
+        )
 
         self.user.build_vocab(self.train_set)
         self.movie.build_vocab(self.train_set)
@@ -225,10 +291,75 @@ def to_csv_citeulike(total=0):
     df.to_csv('Datasets/citeulike/test_data.csv')
 
 
-if __name__ == "__main__":
-    dataset = citeulike()
-    train_iter = dataset.train_iter
-    print(train_iter.device)
-    print(train_iter.epoch)
+def to_csv_movielens(total=0):
+    users = pd.read_csv('Datasets/MovieLens-Small/ratings.csv', usecols=['userId', 'movieId', 'rating'],
+                       dtype={'userId': np.int32, 'movieId': np.int32, 'rating': np.float64}, header=0, sep=',')
 
-    vocab = load_vocab()
+    users.set_index(['userId', 'movieId'])
+
+    users_list, movies_list, ratings_list = [], [], []
+    test_users_list, test_movies_list, test_ratings_list = [], [], []
+    val_users_list, val_movies_list, val_ratings_list = [], [], []
+
+    cnt = 0
+    max_user = users.iloc[-1]['userId'] if total is 0 else users.iloc[total]['userId']
+
+    for index, row in users.iterrows():
+        cnt += 1
+        if total is not 0:
+            if cnt == total:
+                break
+        if cnt % 9 == 0:
+            test_ratings_list.append(row['rating'])
+            test_movies_list.append(row['movieId'])
+            test_users_list.append(row['userId'])
+            continue
+        if cnt % 8 == 0:
+            val_ratings_list.append(row['rating'])
+            val_movies_list.append(row['movieId'])
+            val_users_list.append(row['userId'])
+            continue
+
+
+        ratings_list.append(row['rating'])
+        movies_list.append(row['movieId'])
+        users_list.append(row['userId'])
+
+
+    d = {'user': users_list, 'movie': movies_list, 'rating': ratings_list}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/MovieLens-Small/train_data.csv')
+    d = {'user': val_users_list, 'movie': val_movies_list, 'rating': val_ratings_list}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/MovieLens-Small/val_data.csv')
+    d = {'user': test_users_list, 'movie': test_movies_list, 'rating': test_ratings_list}
+    df = pd.DataFrame(data=d)
+    df.to_csv('Datasets/MovieLens-Small/test_data.csv')
+
+
+if __name__ == "__main__":
+    #device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    #dataset = MovieLens(device=device)
+    #user = dataset.user
+    #print(user.vocab.itos)
+    #to_csv_movielens()
+    dataset = MovieLens2()
+    print(dataset.train_iter.data())
+    new_user = dataset.user
+    new_movie = dataset.movie
+
+    movie_data = MovieLens(device=device)
+
+    train_set = movie_data.get_train_iter()
+
+
+
+    user_field = movie_data.user
+    movie_field = movie_data.movie
+
+    print(len(user_field.vocab.freqs))
+    print(len(new_user.vocab.freqs))
+
+
+
+
