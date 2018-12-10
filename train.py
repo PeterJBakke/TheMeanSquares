@@ -11,11 +11,15 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=3):
     net.train()
     prev_epoch = 0
+    train_loss = []
+
     for batch in train_iter:
 
         net.train()
         output = net(batch)
         batch_loss = criterion(output.reshape(-1), batch.rating)
+
+        train_loss.append(get_numpy(batch_loss))
 
         optimizer.zero_grad()
         batch_loss.backward()
@@ -44,7 +48,18 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
 
         if train_iter.epoch == num_epochs:
             print('Maximum number of Epochs reached')
+            #print(type(train_loss))
+            #print(train_loss)
+            #plot_movielens_train_loss(error=train_loss)
             break
+
+
+def plot_movielens_train_loss(error):
+    x_val = np.asarray(error)
+    plt.figure()
+    plt.plasma(x_val)
+    plt.xlabel('train loss')
+    plt.show()
 
 
 def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):

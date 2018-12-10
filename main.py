@@ -8,6 +8,7 @@ from model import MovieLensNet, CiteULikeModel, LstmNet
 from data import MovieLens, citeulike, MovieLens2
 from train import movie_lens_train, train_with_negative_sampling
 
+
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 movie_data = MovieLens(device=device)
@@ -19,14 +20,14 @@ validation_set = movie_data.get_validation_iter()
 user_field = movie_data.user
 movie_field = movie_data.movie
 
-net = MovieLensNet(user_field=user_field, movie_field=movie_field, device=device, n_factors=5).to(device)
+net = MovieLensNet(user_field=user_field, movie_field=movie_field, device=device, n_factors=1000).to(device)
 
-opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
+opt = optim.Adam(net.parameters(), lr=1e-2, weight_decay=1e-5)
 
 criterion = nn.MSELoss()
 
 movie_lens_train(train_iter=train_set, test_iter=test_set, val_iter=validation_set,
-      net=net, optimizer=opt, criterion=criterion, num_epochs=30)
+      net=net, optimizer=opt, criterion=criterion, num_epochs=200)
 
 
 ############################################################
