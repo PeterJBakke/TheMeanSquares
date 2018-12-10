@@ -88,10 +88,10 @@ class TalentFox:
     def __init__(self, batch_size=100):
         print('Device: ' + str(device))
 
-        self.candidate_title = data.Field(sequential=True, lower=True, include_lengths=True)
-        self.candidate_resume = data.Field(sequential=True, lower=True, include_lengths=True)
-        self.job_title = data.Field(sequential=True, lower=True, include_lengths=True)
-        self.job_description = data.Field(sequential=True, lower=True, include_lengths=True)
+        self.candidate_title = data.Field(sequential=False, lower=True, include_lengths=False, use_vocab=False)
+        #self.candidate_resume = data.Field(sequential=True, lower=True, include_lengths=True)
+        self.job_title = data.Field(sequential=False, lower=True, include_lengths=False, use_vocab=False)
+        #self.job_description = data.Field(sequential=True, lower=True, include_lengths=True)
         self.match_status = data.Field(sequential=False, use_vocab=False)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset.splits(
@@ -102,9 +102,9 @@ class TalentFox:
             format='csv',
             fields=[
                 ('index', None),
-                ('job_description', self.job_description),
+                ('job_description', None),
                 ('job_title', self.job_title),
-                ('candidate_resume', self.candidate_resume),
+                ('candidate_resume', None),
                 ('candidate_title', self.candidate_title),
                 ('match_status', self.match_status)
             ],
@@ -121,12 +121,11 @@ class TalentFox:
             repeat=True)
 
         self.match_status.build_vocab(self.train_set)
-        url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
-        # self.doc_abstract.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
-        self.job_description.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
-        self.job_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
-        self.candidate_resume.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
-        self.candidate_title.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.de.vec'
+        #self.job_description.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        self.job_title.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
+       # self.candidate_resume.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        self.candidate_title.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
 
 class citeulike:
     """
@@ -240,6 +239,10 @@ def to_csv_talentfox(total=0, cols=['job_description', 'job_title', 'candidate_r
     val_job_description, val_job_title, val_candidate_resume, val_candidate_title, val_match_status = [], [], [], [], []
     cnt = 0
     for index, row in docs.iterrows():
+        try:
+            match = 1 if int(docs.loc[index]['match_status']) >= 4 else 0
+        except:
+            continue
         cnt += 1
         if total is not 0:
             if cnt == total:
@@ -249,21 +252,20 @@ def to_csv_talentfox(total=0, cols=['job_description', 'job_title', 'candidate_r
             test_job_title.append(docs.loc[index]['job_title'])
             test_candidate_resume.append(docs.loc[index]['candidate_resume'])
             test_candidate_title.append(docs.loc[index]['candidate_title'])
-            test_match_status.append(docs.loc[index]['match_status'])
+            test_match_status.append(match)
             continue
         if cnt % 8 == 0:
             val_job_description.append(docs.loc[index]['job_description'])
             val_job_title.append(docs.loc[index]['job_title'])
             val_candidate_resume.append(docs.loc[index]['candidate_resume'])
             val_candidate_title.append(docs.loc[index]['candidate_title'])
-            val_match_status.append(docs.loc[index]['match_status'])
+            val_match_status.append(match)
             continue
-
         job_description.append(docs.loc[index]['job_description'])
         job_title.append(docs.loc[index]['job_title'])
         candidate_resume.append(docs.loc[index]['candidate_resume'])
         candidate_title.append(docs.loc[index]['candidate_title'])
-        match_status.append(docs.loc[index]['match_status'])
+        match_status.append(match)
 
     d = {'job_description': job_description, 'job_title': job_title, 'candidate_resume': candidate_resume,
          'candidate_title': candidate_title, 'match_status': match_status}

@@ -62,6 +62,31 @@ class MovieLensNet(nn.Module):
         return torch.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
 
 
+class TalentNet(nn.Module):
+    def __init__(self, job_title, candidate_title, user_dim=50):
+        super(TalentNet, self).__init__()
+        job_title_vectors = job_title.vocab.vectors
+        num_embeddings = job_title_vectors.size()[0]
+        embedding_dim = job_title_vectors.size()[1]
+
+        self.job_title_embeddings = nn.Embedding(num_embeddings, embedding_dim)
+        self.job_title_embeddings.weight.data.copy_(job_title_vectors)
+
+        num_author = len(candidate_title.vocab.freqs)
+        self.candidate_title_embeddings = nn.Embedding(num_author, user_dim)
+        self.candidate_title_embeddings.weight.data.uniform_(0, 0.01)
+
+    def forward(self, x):
+        job_title = self.job_title_embeddings(x.job_title)
+        candidate_title = self.candidate_title_embeddings(x.candidate_title)
+
+        x = (job_title * candidate_title).sum(1)
+
+        out = torch.sigmoid(x)
+
+        return out
+
+
 class CiteULikeModel(nn.Module):
     """
     Colaboratie filtering model for article-author paring

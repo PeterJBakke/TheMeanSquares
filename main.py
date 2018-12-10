@@ -4,9 +4,9 @@ Main
 
 import torch
 from torch import optim, nn
-from model import MovieLensNet, CiteULikeModel, LstmNet
-from data import MovieLens, citeulike
-from train import movie_lens_train, train_with_negative_sampling
+from model import MovieLensNet, CiteULikeModel, LstmNet, TalentNet
+from data import MovieLens, citeulike, TalentFox
+from train import movie_lens_train, train_with_negative_sampling, talent_fox_train
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -51,6 +51,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 ##############################################################
 
+"""
 citeulike = citeulike(batch_size=200)
 
 train_iter = citeulike.train_iter
@@ -65,3 +66,18 @@ opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 train_with_negative_sampling(train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
                                 net=net, optimizer=opt, criterion=criterion, num_epochs=50)
+"""
+tf = TalentFox()
+
+train_iter = tf.train_iter
+test_iter = tf.test_iter
+val_iter = tf.validation_iter
+
+job_title = tf.job_title
+candidate_title = tf.candidate_title
+
+net = TalentNet(job_title=job_title, candidate_title=candidate_title).to(device)
+opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
+criterion = nn.BCELoss()
+
+talent_fox_train(train_iter=train_iter, test_iter=test_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, num_epochs=1)

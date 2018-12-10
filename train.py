@@ -40,6 +40,73 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
         if train_iter.epoch == num_epochs:
             break
 
+def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
+    net.train()
+    prev_epoch = 0
+    train_loss = []
+    train_error = []
+    train_accs = []
+    val_res = []
+    for batch in train_iter:
+        job_title, candidate_title, match_status = batch.job_title, batch.candidate_title, batch.match_status
+        net.train()
+
+        batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
+        output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
+        targets = match_status.float().to(device)
+        batch_loss = criterion(output, targets)
+
+        train_loss.append(get_numpy(batch_loss))
+        train_error.append(accuracy_sigmoid(output, targets))
+        train_accs.append(accuracy(output, targets))
+
+        optimizer.zero_grad()
+        batch_loss.backward()
+        optimizer.step()
+
+        # print(
+        #     "Train loss: {:.3f}, Train avg error: {:.3f}"
+        #         .format(criterion(output, target), accuracy_sigmoid(output, target)))
+
+        if train_iter.epoch != prev_epoch:
+            net.eval()
+            val_loss, val_accs, val_err, val_length = [0, 0, 0, 0]
+
+            for val_batch in val_iter:
+                if val_iter.epoch != train_iter.epoch-1:
+                    break
+                job_title, candidate_title, match_status = batch.job_title, batch.candidate_title, batch.match_status
+                batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
+                val_output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
+                val_target = match_status.float().to(device)
+                val_loss += criterion(val_output, val_target) * val_batch.batch_size
+                val_err += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
+                val_accs += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
+                val_length += val_batch.batch_size
+
+            val_loss /= val_length
+            val_err /= val_length
+            val_accs /= val_length
+            val_res.append(val_accs)
+
+            print(
+                "Epoch {}: Train loss: {:.2f},  Train accs: {:.2f}, Train avg error: {:.2f}"
+                    .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), np.mean(train_error)))
+            print(
+                "          Validation loss: {:.2f}, Validation accs: {:.2f}, Validation avg error: {:.2f}"
+                    .format(val_loss, 1.0 - val_accs, val_err))
+            print()
+            train_loss = []
+            train_error = []
+            train_accs = []
+            # plot_res(train_res, val_res, train_iter.epoch)
+
+            net.train()
+
+        prev_epoch = train_iter.epoch
+        if train_iter.epoch == num_epochs:
+            break
+
 
 def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
     net.train()
