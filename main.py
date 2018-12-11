@@ -4,12 +4,22 @@ Main
 
 import torch
 from torch import optim, nn
-from model import MovieLensNet, CiteULikeModel, LstmNet
+from model import MovieLensNet, CiteULikeModel, LstmNet, MatrixFactorization
 from data import MovieLens, citeulike, MovieLens2
 from train import movie_lens_train, train_with_negative_sampling
 
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+
+
+# ratings_data = MovieLens(device=device)
+# ratings, ratings_columns = ratings_data.get_ratings_matrix()
+# ratings_demeaned, ratings_mean = ratings_data.get_normalized_ratings_matrix()
+#
+# factormodel = MatrixFactorization(data=ratings_demeaned, data_mean=ratings_mean, data_columns=ratings_columns)
+
+
+##########################################################################
 
 movie_data = MovieLens(device=device)
 
@@ -27,7 +37,10 @@ opt = optim.Adam(net.parameters(), lr=1e-2, weight_decay=1e-5)
 criterion = nn.MSELoss()
 
 movie_lens_train(train_iter=train_set, test_iter=test_set, val_iter=validation_set,
-      net=net, optimizer=opt, criterion=criterion, num_epochs=200)
+      net=net, optimizer=opt, criterion=criterion, num_epochs=1)
+
+
+
 
 
 ############################################################

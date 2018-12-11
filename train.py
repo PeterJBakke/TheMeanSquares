@@ -4,6 +4,7 @@ from torch.autograd import Variable
 import numpy as np
 import matplotlib.pyplot as plt
 from random import randint
+from model import draw_neural_net
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
@@ -51,6 +52,12 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
             #print(type(train_loss))
             #print(train_loss)
             #plot_movielens_train_loss(error=train_loss)
+
+            # print('Diagram of MovieLens net')
+            # weights = [net.weight.data.numpy().T]
+            # biases = [net.bias.data.numpy()]
+            # tf = [str(net)]
+            # draw_neural_net(weights, biases, tf)
             break
 
 

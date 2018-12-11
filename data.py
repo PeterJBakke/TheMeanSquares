@@ -71,9 +71,9 @@ class MovieLens2:
         #     sort_within_batch=True,
         #     repeat=False)
 
-        self.user.build_vocab(self.train_set)
-        self.movie.build_vocab(self.train_set)
-        self.rating.build_vocab(self.train_set)
+        # self.user.build_vocab(self.train_set)
+        # self.movie.build_vocab(self.train_set)
+        # self.rating.build_vocab(self.train_set)
 
 
 
@@ -84,6 +84,8 @@ class MovieLens:
 
     def __init__(self, device, path='./Datasets/MovieLens-Small/ratings.csv'):
         print('Device: ' + str(device))
+
+        self.path = path
 
         self.user = data.Field(sequential=False, use_vocab=True, unk_token=None)
         self.movie = data.Field(sequential=False, use_vocab=True)
@@ -125,6 +127,17 @@ class MovieLens:
 
     def get_test_iter(self):
         return self.test_iter
+
+    def get_ratings_matrix(self):
+        ratings_df = pd.read_csv(filepath_or_buffer=self.path)
+        R_df = ratings_df.pivot(index='userId', columns='movieId', values='rating').fillna(0)
+        return R_df, R_df.columns
+
+    def get_normalized_ratings_matrix(self):
+        R, _ = self.get_ratings_matrix().values()
+        user_ratings_mean = np.mean(R, axis=1)
+        R_demeaned = R - user_ratings_mean.reshape(-1, 1)
+        return R_demeaned, user_ratings_mean
 
 
 class TalentFox:
@@ -338,28 +351,13 @@ def to_csv_movielens(total=0):
 
 
 if __name__ == "__main__":
-    #device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     #dataset = MovieLens(device=device)
     #user = dataset.user
     #print(user.vocab.itos)
     #to_csv_movielens()
-    dataset = MovieLens2()
-    print(dataset.train_iter.data())
-    new_user = dataset.user
-    new_movie = dataset.movie
-
-    movie_data = MovieLens(device=device)
-
-    train_set = movie_data.get_train_iter()
-
-
-
-    user_field = movie_data.user
-    movie_field = movie_data.movie
-
-    print(len(user_field.vocab.freqs))
-    print(len(new_user.vocab.freqs))
-
-
-
-
+    dataset = MovieLens(device=device)
+    ratings = dataset.get_ratings_matrix()
+    print(ratings)
+    norm_ratings = dataset.get_normalized_ratings_matrix()
+    print(np.shape(norm_ratings))
