@@ -80,4 +80,4 @@ net = TalentNet(job_title=job_title, candidate_title=candidate_title).to(device)
 opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 
-talent_fox_train(train_iter=train_iter, test_iter=test_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, num_epochs=1)
+talent_fox_train(train_iter=train_iter, test_iter=test_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, num_epochs=5)

@@ -63,22 +63,41 @@ class MovieLensNet(nn.Module):
 
 
 class TalentNet(nn.Module):
-    def __init__(self, job_title, candidate_title, user_dim=50):
+    def __init__(self, job_title, candidate_title):
         super(TalentNet, self).__init__()
-        job_title_vectors = job_title.vocab.vectors
-        num_embeddings = job_title_vectors.size()[0]
-        embedding_dim = job_title_vectors.size()[1]
+        self.job_title_vectors = job_title.vocab.vectors
+        self.job_num_embeddings = self.job_title_vectors.size()[0]
+        self.job_embedding_dim = self.job_title_vectors.size()[1]
 
-        self.job_title_embeddings = nn.Embedding(num_embeddings, embedding_dim)
-        self.job_title_embeddings.weight.data.copy_(job_title_vectors)
+        self.candidate_title_vectors = candidate_title.vocab.vectors
+        self.candidate_num_embeddings = self.candidate_title_vectors.size()[0]
+        self.candidate_embedding_dim = self.candidate_title_vectors.size()[1]
 
-        num_author = len(candidate_title.vocab.freqs)
-        self.candidate_title_embeddings = nn.Embedding(num_author, user_dim)
-        self.candidate_title_embeddings.weight.data.uniform_(0, 0.01)
+        self.job_title_embeddings = nn.Embedding(self.job_num_embeddings, self.job_embedding_dim)
+        self.job_title_embeddings.weight.data.copy_(self.job_title_vectors)
 
-    def forward(self, x):
-        job_title = self.job_title_embeddings(x.job_title)
-        candidate_title = self.candidate_title_embeddings(x.candidate_title)
+        self.candidate_title_embeddings = nn.Embedding(self.candidate_num_embeddings, self.candidate_embedding_dim)
+        self.candidate_title_embeddings.weight.data.copy_(self.candidate_title_vectors)
+
+    def forward(self, data):
+        job_title = data.job_title
+        candidate_title = data.candidate_title
+
+        numpy_job = job_title.cpu().data.numpy()
+        num_non_ones = np.count_nonzero(np.subtract(numpy_job, np.ones(numpy_job.shape)), axis=0)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.job_embedding_dim, 1)
+        num_non_ones = torch.tensor(num_non_ones).to(device).float()
+
+        job_title = self.job_title_embeddings(job_title)
+        job_title = torch.sum(job_title, 0).to(device) / num_non_ones
+
+        numpy_candidate = candidate_title.cpu().data.numpy()
+        num_non_ones = np.count_nonzero(np.subtract(numpy_candidate, np.ones(numpy_candidate.shape)), axis=0)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.candidate_embedding_dim, 1)
+        num_non_ones = torch.tensor(num_non_ones).to(device).float()
+
+        candidate_title = self.candidate_title_embeddings(candidate_title)
+        candidate_title = torch.sum(candidate_title, 0).to(device) / num_non_ones
 
         x = (job_title * candidate_title).sum(1)
 

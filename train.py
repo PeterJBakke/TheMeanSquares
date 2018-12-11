@@ -44,8 +44,9 @@ def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
     net.train()
     prev_epoch = 0
     train_loss = []
-    train_error = []
     train_accs = []
+    train_accs_pos = 0
+    train_sum = 0
     val_res = []
     for batch in train_iter:
         job_title, candidate_title, match_status = batch.job_title, batch.candidate_title, batch.match_status
@@ -54,53 +55,51 @@ def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
         batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
         output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
         targets = match_status.float().to(device)
+        criterion.weight = weights(targets)
         batch_loss = criterion(output, targets)
 
         train_loss.append(get_numpy(batch_loss))
-        train_error.append(accuracy_sigmoid(output, targets))
-        train_accs.append(accuracy(output, targets))
+        train_accs.append(accuracy_sigmoid(output, targets))
+        train_accs_pos += accuracy_talent(output, targets)
+        train_sum += sum_targets(targets)
 
         optimizer.zero_grad()
         batch_loss.backward()
         optimizer.step()
 
-        # print(
-        #     "Train loss: {:.3f}, Train avg error: {:.3f}"
-        #         .format(criterion(output, target), accuracy_sigmoid(output, target)))
 
         if train_iter.epoch != prev_epoch:
             net.eval()
-            val_loss, val_accs, val_err, val_length = [0, 0, 0, 0]
+            val_loss, val_accs, val_accs_pos, val_length, val_sum = 0, 0, 0, 0, 0
 
             for val_batch in val_iter:
                 if val_iter.epoch != train_iter.epoch-1:
                     break
-                job_title, candidate_title, match_status = batch.job_title, batch.candidate_title, batch.match_status
+                job_title, candidate_title, match_status = batch.job_title, val_batch.candidate_title, val_batch.match_status
                 batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
                 val_output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
                 val_target = match_status.float().to(device)
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
-                val_err += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
                 val_accs += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size
+                val_accs_pos += accuracy_talent(val_output, val_target)
                 val_length += val_batch.batch_size
+                val_sum += sum_targets(val_target)
 
             val_loss /= val_length
-            val_err /= val_length
             val_accs /= val_length
             val_res.append(val_accs)
 
             print(
-                "Epoch {}: Train loss: {:.2f},  Train accs: {:.2f}, Train avg error: {:.2f}"
-                    .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), np.mean(train_error)))
+                "Epoch {}: Train loss: {:.2f},  Train accs total: {:.2f}, Train accs positive: {}/{}"
+                    .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), train_accs_pos, train_sum))
             print(
-                "          Validation loss: {:.2f}, Validation accs: {:.2f}, Validation avg error: {:.2f}"
-                    .format(val_loss, 1.0 - val_accs, val_err))
+                "          Validation loss: {:.2f}, Validation accs total: {:.2f}, Validation accs positive: {}/{}"
+                    .format(val_loss, 1.0 - val_accs, val_accs_pos, val_sum))
             print()
             train_loss = []
-            train_error = []
             train_accs = []
-            # plot_res(train_res, val_res, train_iter.epoch)
-
+            train_accs_pos = 0
+            train_sum = 0
             net.train()
 
         prev_epoch = train_iter.epoch
@@ -191,7 +190,6 @@ def negative_sampling(users, docs, num_user):
     batch_with_negative_sampling = {'user': author, 'doc_title': doc_title}
     return SimpleNamespace(**batch_with_negative_sampling)
 
-
 def plot_res(train_res, val_res, num_res):
     x_vals = np.arange(num_res)
     plt.figure()
@@ -199,13 +197,21 @@ def plot_res(train_res, val_res, num_res):
     plt.legend(['Train Accucary', 'Validation Accuracy'])
     plt.xlabel('Updates'), plt.ylabel('Acc')
 
-
 def accuracy_one_hot(output, target):
     # making a one-hot encoded vector of correct (1) and incorrect (0) predictions
     correct_prediction = torch.eq(torch.max(output, 1)[1], target)
     # averaging the one-hot encoded vector
     return torch.mean(correct_prediction.float())
 
+def sum_targets(targets):
+    return torch.sum(targets)
+
+def accuracy_talent(output, targets):
+    correct_predictions = 0
+    for idx, val in enumerate(output):
+        if val > 0.5 and targets[idx] == torch.tensor(1.0):
+            correct_predictions += 1
+    return correct_predictions
 
 def accuracy_sigmoid(output, target):
     return torch.mean(torch.abs(output - target).float()).cpu().data.numpy()
@@ -214,6 +220,14 @@ def accuracy_sigmoid(output, target):
 def accuracy(output, target):
     return torch.mean(torch.abs(torch.round(output) - target)).cpu().data.numpy()
 
+def weights(target):
+    weight = []
+    for val in target:
+        if val == torch.tensor(1.):
+            weight.append(100.)
+        else:
+            weight.append(1.)
+    return torch.tensor(weight)
 
 def print_params(net):
     for name, param in net.named_parameters():

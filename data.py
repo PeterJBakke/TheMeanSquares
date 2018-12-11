@@ -88,9 +88,9 @@ class TalentFox:
     def __init__(self, batch_size=100):
         print('Device: ' + str(device))
 
-        self.candidate_title = data.Field(sequential=False, lower=True, include_lengths=False, use_vocab=False)
+        self.candidate_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=False, use_vocab=True)
         #self.candidate_resume = data.Field(sequential=True, lower=True, include_lengths=True)
-        self.job_title = data.Field(sequential=False, lower=True, include_lengths=False, use_vocab=False)
+        self.job_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=False, use_vocab=True)
         #self.job_description = data.Field(sequential=True, lower=True, include_lengths=True)
         self.match_status = data.Field(sequential=False, use_vocab=False)
 
@@ -102,9 +102,9 @@ class TalentFox:
             format='csv',
             fields=[
                 ('index', None),
-                ('job_description', None),
+                #('job_description', None),
                 ('job_title', self.job_title),
-                ('candidate_resume', None),
+                #('candidate_resume', None),
                 ('candidate_title', self.candidate_title),
                 ('match_status', self.match_status)
             ],
@@ -232,13 +232,20 @@ def to_csv_citeulike(total=0):
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/citeulike/test_data.csv')
 
-def to_csv_talentfox(total=0, cols=['job_description', 'job_title', 'candidate_resume', 'candidate_title', 'match_status']):
+def to_csv_talentfox(total=0, cols=['job_title', 'candidate_title', 'match_status']):
+    keys = ('mba', 'it', 'ceo', 'ad', 'bdm', 'kam', 'ka', 'dr.', 'bwl', 'oa', 'csm')
     docs = pd.read_csv('Datasets/talentfox_match_data/processed_dataset.csv', usecols=cols, header=0, sep=',')
     job_description, job_title, candidate_resume, candidate_title, match_status = [], [], [], [], []
     test_job_description, test_job_title, test_candidate_resume, test_candidate_title, test_match_status = [], [], [], [], []
     val_job_description, val_job_title, val_candidate_resume, val_candidate_title, val_match_status = [], [], [], [], []
     cnt = 0
     for index, row in docs.iterrows():
+        if len(str(docs.loc[index]['job_title'])) < 4:
+            if str(docs.loc[index]['job_title']).lower() not in keys:
+                continue
+        if len(str(docs.loc[index]['candidate_title'])) < 4:
+            if str(docs.loc[index]['candidate_title']).lower() not in keys:
+                continue
         try:
             match = 1 if int(docs.loc[index]['match_status']) >= 4 else 0
         except:
@@ -248,38 +255,44 @@ def to_csv_talentfox(total=0, cols=['job_description', 'job_title', 'candidate_r
             if cnt == total:
                 break
         if cnt % 9 == 0:
-            test_job_description.append(docs.loc[index]['job_description'])
+            #test_job_description.append(docs.loc[index]['job_description'])
             test_job_title.append(docs.loc[index]['job_title'])
-            test_candidate_resume.append(docs.loc[index]['candidate_resume'])
+            #test_candidate_resume.append(docs.loc[index]['candidate_resume'])
             test_candidate_title.append(docs.loc[index]['candidate_title'])
             test_match_status.append(match)
             continue
         if cnt % 8 == 0:
-            val_job_description.append(docs.loc[index]['job_description'])
+            #val_job_description.append(docs.loc[index]['job_description'])
             val_job_title.append(docs.loc[index]['job_title'])
-            val_candidate_resume.append(docs.loc[index]['candidate_resume'])
+            #val_candidate_resume.append(docs.loc[index]['candidate_resume'])
             val_candidate_title.append(docs.loc[index]['candidate_title'])
             val_match_status.append(match)
             continue
-        job_description.append(docs.loc[index]['job_description'])
+        #job_description.append(docs.loc[index]['job_description'])
         job_title.append(docs.loc[index]['job_title'])
-        candidate_resume.append(docs.loc[index]['candidate_resume'])
+        #candidate_resume.append(docs.loc[index]['candidate_resume'])
         candidate_title.append(docs.loc[index]['candidate_title'])
         match_status.append(match)
 
-    d = {'job_description': job_description, 'job_title': job_title, 'candidate_resume': candidate_resume,
-         'candidate_title': candidate_title, 'match_status': match_status}
+    d = {'job_title': job_title, 'candidate_title': candidate_title, 'match_status': match_status}
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/talentfox_match_data/train_data.csv')
-    d = {'job_description': val_job_description, 'job_title': val_job_title, 'candidate_resume': val_candidate_resume,
-         'candidate_title': val_candidate_title, 'match_status': val_match_status}
+    d = {'job_title': val_job_title, 'candidate_title': val_candidate_title, 'match_status': val_match_status}
+
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/talentfox_match_data/val_data.csv')
-    d = {'job_description': test_job_description, 'job_title': test_job_title, 'candidate_resume': test_candidate_resume,
-         'candidate_title': test_candidate_title, 'match_status': test_match_status}
+    d = {'job_title': test_job_title, 'candidate_title': test_candidate_title, 'match_status': test_match_status}
+
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/talentfox_match_data/test_data.csv')
 
+STOP_WORDS = {'(', ')', '/', 'm', 'w', '-', ' ', '.'}
+
+def tokenizer(text):  # create a tokenizer function
+    tokens = [tok.text for tok in spacy_en.tokenizer(text)]
+    tokens = list(filter(lambda token: token not in STOP_WORDS, tokens))
+    tokens = list(filter(lambda token: len(token) > 3, tokens))
+    return tokens
 
 if __name__ == "__main__":
     dataset = citeulike()
