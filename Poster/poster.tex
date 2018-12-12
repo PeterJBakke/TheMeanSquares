@@ -78,7 +78,7 @@
 
 \small{Collaborative text filtering is one of the most popular and effective approaches for recommender systems. Recommender systems are based on the idea, that given previously collected data about users and their interactions with items, you can predict whether a given user wants to have an interaction with a given item. This is widely used for platforms like Netflix, Amazon, Youtube and news websites. These platforms can increase their profits by being able to predict their consumers interests and showing content relevant for the user. 
 
-The purpose of this project is to match two text descriptions of varied lengths. More concretely job applications with job descriptions. The hope is of course, to have a model that matches job applicants with open job positions.
+The purpose of this project is to match two text descriptions of varied lengths. More concretely we propose a model to recommend articles to users based on the abstracts from other articles a user has indicated as read.
 \vspace{0.5cm}
 }
 
@@ -112,7 +112,6 @@ The purpose of this project is to match two text descriptions of varied lengths.
 \small{
         \item We use the publicly available \textbf{MovieLens} dataset from \url{https://grouplens.org/datasets/movielens/} for the first part of our project
 	\item We use the publicly available \textbf{CiteULike} from \url{http://www.citeulike.org/faq/data.adp} for the second part of our project
-	\item We use a private dataset called \textbf{TalentFox} for the final part of our project
 }
 \end{itemize}
 
@@ -157,7 +156,7 @@ The purpose of this project is to match two text descriptions of varied lengths.
 	\item  \quad LSTM Networks}
 	\end{itemize}}
 	And compare the results to the baseline model
-	\item We implement the models using the \textbf{Pytorch} deep learning framework and \textbf{TorchText}
+	\item We implement the models using the \textbf{Pytorch} deep learning framework and use \textbf{TorchText} for creating word embeddings and batch iterators
 	\item We train the models on the \textbf{Google Colab} GPU cloud
 }
 \end{itemize}
@@ -293,7 +292,7 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 % ---------------------------------------------------------%
 
 
- \begin{block}{TalentFox}
+ \begin{block}{CiteULike}
  \begin{columns}
  \begin{column}{1\textwidth}
 
@@ -335,9 +334,15 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
  
  \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{movielensnet.png}
- \caption{Need to draw another diagram here}
+\includegraphics[width=0.85\textwidth]{CiteuLikeNet.png}
+ \caption{CiteULike Neural net representation}
 \end{figure}  
+
+\begin{figure}
+
+\includegraphics[width=0.85\textwidth]{CiteuLikeLSTM.png}
+ \caption{CiteULike LSTM net representation. For clarity the temporal structure of the LSTM blocks have not been shown.}
+\end{figure}
 
 \end{minipage}
 
@@ -351,7 +356,7 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
 \end{columns}
 \vskip-1ex
 \end{block}
-\vfill
+\vfill	
 
 \begin{block}{Comparison of results}
 
@@ -397,37 +402,6 @@ Peroxisome       & 0   & 13  & 0   & 4   & 1   & 4   & 0   & 0  & 0 & 8 & 0.267 
 
 \vfill
 
-\begin{block}{More results}
-
-\begin{columns}
-\begin{column}{1\textwidth}
-
-\centering
-
-%\vspace{2.5cm}
-\centering
-\begin{minipage}[t]{.95\textwidth}
-
-
-\vspace{-0.5cm}
-
-\small{We are able to represent what regions in the sequence are relevant for each subcellular localization to perform the prediction.}
-
-\vspace{0.4cm}
-\begin{figure}
-\centering
-\includegraphics[width=0.9\linewidth]{Sequence_importance.eps}
- \caption{Sequence importance across the protein sequence of DeepLoc test set when making the prediction.}
-\end{figure}  
-
-
-\end{minipage}
-
-\end{column}
-\end{columns}
-\end{block}	
-
-\vfill
 
 \begin{block}{Acknowledgements}
 \centering
