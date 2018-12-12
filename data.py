@@ -134,7 +134,8 @@ class MovieLens:
         return R_df, R_df.columns
 
     def get_normalized_ratings_matrix(self):
-        R, _ = self.get_ratings_matrix().values()
+        R, _ = self.get_ratings_matrix()
+        R = R.as_matrix()
         user_ratings_mean = np.mean(R, axis=1)
         R_demeaned = R - user_ratings_mean.reshape(-1, 1)
         return R_demeaned, user_ratings_mean
@@ -357,7 +358,14 @@ if __name__ == "__main__":
     #print(user.vocab.itos)
     #to_csv_movielens()
     dataset = MovieLens(device=device)
-    ratings = dataset.get_ratings_matrix()
-    print(ratings)
-    norm_ratings = dataset.get_normalized_ratings_matrix()
-    print(np.shape(norm_ratings))
+    ratings, columns = dataset.get_ratings_matrix()
+    R_demeaned, user_ratings_mean = dataset.get_normalized_ratings_matrix()
+    #print(ratings)
+
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    ratings_to_plot = R_demeaned + user_ratings_mean.reshape(-1, 1)
+    #cmap = sns.cm.gist_heat_r
+    ax = sns.heatmap(data=ratings_to_plot[0:50, 0:100], vmin=0.0, vmax=5.0, cmap='hot_r')
+    ax.set(xlabel='MovieId', ylabel='UserId')
+    plt.show()
