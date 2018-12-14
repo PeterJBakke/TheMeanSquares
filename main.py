@@ -4,29 +4,29 @@ Main
 
 import torch
 from torch import optim, nn
-from model import MovieLensNet, CiteULikeModel, LstmNet, TalentNet
+from model import MovieLensNet, CiteULikeModel, LstmNet, TalentNet, CuLMFNet
 from data import MovieLens, citeulike, TalentFox
 from train import movie_lens_train, train_with_negative_sampling, talent_fox_train
 
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-# movie_data = MovieLens(device=device)
-#
-# train_set = movie_data.get_train_iter()
-# test_set = movie_data.get_test_iter()
-# validation_set = movie_data.get_validation_iter()
-#
-# user_field = movie_data.user
-# movie_field = movie_data.movie
-#
-# net = MovieLensNet(user_field=user_field, movie_field=movie_field, device=device, n_factors=10).to(device)
-#
-# opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
-#
-# criterion = nn.MSELoss()
-#
-# movie_lens_train(train_iter=train_set, test_iter=test_set, val_iter=validation_set,
-#       net=net, optimizer=opt, criterion=criterion, num_epochs=50)
+movie_data = MovieLens(device=device)
+
+train_set = movie_data.get_train_iter()
+test_set = movie_data.get_test_iter()
+validation_set = movie_data.get_validation_iter()
+
+user_field = movie_data.user
+movie_field = movie_data.movie
+
+net = MovieLensNet(user_field=user_field, movie_field=movie_field, device=device, n_factors=10).to(device)
+
+opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
+
+criterion = nn.MSELoss()
+
+movie_lens_train(train_iter=train_set, test_iter=test_set, val_iter=validation_set,
+                 net=net, optimizer=opt, criterion=criterion, num_epochs=50)
 
 ############################################################
 
@@ -58,15 +58,17 @@ train_iter = citeulike.train_iter
 test_iter = citeulike.test_iter
 validation_iter = citeulike.validation_iter
 
-user_field = citeulike.user
-title_field = citeulike.doc_title
+largest_doc_id = max(list(map(int, train_iter.dataset.fields['doc_id'].vocab.itos[1:])))
 
-net = LstmNet(article_field=title_field, user_field=user_field).to(device)
+user_field = citeulike.user
+title_field = citeulike.doc_id
+
+net = CuLMFNet(article_field=title_field, user_field=user_field, num_docs=largest_doc_id).to(device)
 opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 train_with_negative_sampling(train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
                                 net=net, optimizer=opt, criterion=criterion, num_epochs=50)
-"""
+
 tf = TalentFox()
 
 train_iter = tf.train_iter
@@ -81,3 +83,4 @@ opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 
 talent_fox_train(train_iter=train_iter, test_iter=test_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, num_epochs=5)
+"""

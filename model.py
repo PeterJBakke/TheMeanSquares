@@ -215,3 +215,23 @@ class LstmNet(nn.Module):
         out = torch.sigmoid(x)
 
         return out
+
+class CuLMFNet(nn.Module):
+    def __init__(self, article_field, user_field, num_docs, user_dim=50):
+        super(CuLMFNet, self).__init__()
+
+        self.doc_embedding = nn.Embedding(num_docs, user_dim)
+        self.doc_embedding.weight.data.uniform_(0, 0.01)
+
+        num_author = len(user_field.vocab.freqs)
+        self.author_embedding = nn.Embedding(num_author, user_dim)
+        self.author_embedding.weight.data.uniform_(0, 0.01)
+
+    def forward(self, x):
+        user = self.author_embedding(x.user)
+        doc = self.doc_embedding(x.doc_id)
+        x = (user * doc).sum(1)
+
+        out = torch.sigmoid(x)
+
+        return out

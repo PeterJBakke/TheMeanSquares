@@ -115,11 +115,11 @@ def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer
     train_accs = []
     val_res = []
     for batch in train_iter:
-        users,(docs, lengths), ratings = batch.user, batch.doc_title, batch.ratings
+        users,docs, ratings = batch.user, batch.doc_id, batch.ratings
         net.train()
 
-        batch_with_negative_sampling = {'user': users, 'doc_title': docs}
-        output = net(SimpleNamespace(**batch_with_negative_sampling), lengths).reshape(-1)
+        batch_with_negative_sampling = {'user': users, 'doc_id': docs}
+        output = net(SimpleNamespace(**batch_with_negative_sampling)).reshape(-1)
         targets = ratings.float().to(device)
         batch_loss = criterion(output, targets)
 
@@ -142,9 +142,9 @@ def train_with_negative_sampling(train_iter, val_iter, net, test_iter, optimizer
             for val_batch in val_iter:
                 if val_iter.epoch != train_iter.epoch-1:
                     break
-                users, (docs, lengths), ratings = val_batch.user, val_batch.doc_title, val_batch.ratings
-                batch_without_negative_sampling = {'user': users, 'doc_title': docs}
-                val_output = net(SimpleNamespace(**batch_without_negative_sampling), lengths).reshape(-1)
+                users, docs, ratings = val_batch.user, val_batch.doc_id, val_batch.ratings
+                batch_without_negative_sampling = {'user': users, 'doc_id': docs}
+                val_output = net(SimpleNamespace(**batch_without_negative_sampling)).reshape(-1)
                 val_target = ratings.float().to(device)
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
                 val_err += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size

@@ -142,6 +142,7 @@ class citeulike:
         self.user = data.Field(sequential=False, use_vocab=False)
         self.doc_title = data.Field(sequential=True, lower=True, include_lengths=True)
         self.ratings = data.Field(sequential=False, use_vocab=False)
+        self.doc_id = data.Field(sequential=False, use_vocab=True)
         # self.doc_abstract = data.Field(sequential=True, tokenize=tokenizer, lower=True)
 
         self.train_set, self.validation_set, self.test_set = data.TabularDataset.splits(
@@ -153,7 +154,7 @@ class citeulike:
             fields=[
                 ('index', None),
                 ('user', self.user),
-                ('doc_id', None),
+                ('doc_id', self.doc_id),
                 ('ratings', self.ratings),
                 ('doc_title', self.doc_title),
                 # ('doc_abstract', self.doc_abstract)
@@ -171,6 +172,7 @@ class citeulike:
             repeat=True)
 
         self.user.build_vocab(self.train_set)
+        self.doc_id.build_vocab(self.train_set)
         self.ratings.build_vocab(self.train_set)
         url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.simple.vec'
         # self.doc_abstract.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
