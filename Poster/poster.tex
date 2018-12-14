@@ -302,6 +302,14 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \end{block}
 \vfill
 
+\begin{block}{Acknowledgements}
+\centering
+\begin{minipage}[t]{0.98\textwidth}
+
+\footnotesize{The authors wish to thank Alexander R. Johansen and Jose Juan Almagro Armenteros from DTU Lyngby for their constructive feedback and fruitful discussions during the process of the project.}
+\end{minipage}
+\end{block}
+\vfill
 
 
 
@@ -378,17 +386,36 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
 
 
 \begin{columns}
+ \begin{column}{0.33\textwidth}
+ 
+
+	\begin{figure}
+
+\includegraphics[width=0.85\textwidth]{sorted_batch.png}
+ \caption{Batch sorting} \label{fig:batch_sorted}
+\end{figure}
+
+ \end{column}
+ \begin{column}{0.66\textwidth}
+	\justifying
+ \footnotesize{
+	When training the model we need to take into account that the sequences are of varying length in order to not waste too much computation on calculating on the padding. Figure \ref{fig:batch_sorted} visualize how the amount of padding (the grey area) is minimized in the batch by sorting the documents on the length of the sentences.}
+ \end{column}
+ \end{columns}
+
+
+\begin{columns}
  \begin{column}{0.45\textwidth}
  \justifying
  \footnotesize{
-	Here are some results }
+	Figure \ref{fig:lstm_results} show how the LSTM model trains on the CiteULike data set. The model is able to achieve around 80\% accuracy on the validation set. The 80\% accuracy is a pretty good result since we right now only train on the Titles of the articles. We will try to improve the accuracy by training on the article Abstracts which contain a lot more information about the content of the article compared to the Title.}
  \end{column}
  \begin{column}{0.49\textwidth}
 
 \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{lstm.png}
- \caption{Train and val loss}
+\includegraphics[width=0.85\textwidth]{lstm.png} 
+ \caption{Training and Validation loss and Accuracy for the LSTM net on the CiteULike data} \label{fig:lstm_results}
 \end{figure}
 
  \end{column}
@@ -412,54 +439,46 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
 \end{block}
 \vfill	
 
-\begin{block}{Comparison of results}
+%\begin{block}{Comparison of results}
+%
+%\begin{columns}
+%\begin{column}{1\textwidth}
+%
+%\centering
+%
+%%\vspace{2.5cm}
+%\centering
+%\begin{minipage}[t]{.95\textwidth}
+%
+%
+%\vspace{-1cm}
+%\begin{table}[h]
+%\footnotesize
+%\caption{Another table to summarize results - or maybe some more charts???}
+%\begin{tabular}{p{8cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2.5cm}p{2.5cm}}
+%\toprule
+%Location      & \multicolumn{10}{l}{What can we possibly show???}        & another metric & AUC or??? \\
+%\midrule
+%MovieLens MF          & 680 & 103 & 4   & 5   & 2   & 8   & 1   & 2  & 2 & 1 & 0.842 & 0.784 \\
+%MovieLens NN         & 94  & 361 &  7  & 18  & 5   & 4   & 3   & 8  & 1 & 7 & 0.711 & 0.608 \\
+%CuL MF    & 3   & 5   & 365 &  5  & 5   & 4   & 2   & 0  & 4 & 0 & 0.929 & 0.907 \\
+%CuL NN     & 9   & 21  & 0   & 247 &  0  & 5   & 14  & 2  & 1 & 3 & 0.818 & 0.812 \\
+%CuL LSTM     & 5   & 15  & 6   & 1   & 203 & 20  & 1   & 4  & 18& 0 & 0.744 & 0.732 \\
+%\bottomrule
+%
+%\end{tabular}
+%\end{table}
+%
+%
+%\end{minipage}
+%
+%\end{column}
+%\end{columns}
+%\end{block}
+%
+%\vfill
 
-\begin{columns}
-\begin{column}{1\textwidth}
 
-\centering
-
-%\vspace{2.5cm}
-\centering
-\begin{minipage}[t]{.95\textwidth}
-
-
-\vspace{-1cm}
-\begin{table}[h]
-\footnotesize
-\caption{Another table to summarize results - or maybe some more charts???}
-\begin{tabular}{p{8cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2cm}p{2.5cm}p{2.5cm}}
-\toprule
-Location      & \multicolumn{10}{l}{What can we possibly show???}        & another metric & AUC or??? \\
-\midrule
-MovieLens MF          & 680 & 103 & 4   & 5   & 2   & 8   & 1   & 2  & 2 & 1 & 0.842 & 0.784 \\
-MovieLens NN         & 94  & 361 &  7  & 18  & 5   & 4   & 3   & 8  & 1 & 7 & 0.711 & 0.608 \\
-CuL MF    & 3   & 5   & 365 &  5  & 5   & 4   & 2   & 0  & 4 & 0 & 0.929 & 0.907 \\
-CuL NN     & 9   & 21  & 0   & 247 &  0  & 5   & 14  & 2  & 1 & 3 & 0.818 & 0.812 \\
-CuL LSTM     & 5   & 15  & 6   & 1   & 203 & 20  & 1   & 4  & 18& 0 & 0.744 & 0.732 \\
-\bottomrule
-
-\end{tabular}
-\end{table}
-
-
-\end{minipage}
-
-\end{column}
-\end{columns}
-\end{block}
-
-\vfill
-
-
-\begin{block}{Acknowledgements}
-\centering
-\begin{minipage}[t]{0.98\textwidth}
-
-\footnotesize{The authors wish to thank Alexander R. Johansen and Jose Juan Almagro Armenteros from DTU Lyngby for their constructive feedback and fruitful discussions during the process of the project.}
-\end{minipage}
-\end{block}
-\vfill
 \begin{block}{References}
 
 {\scriptsize
