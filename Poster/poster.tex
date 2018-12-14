@@ -64,15 +64,7 @@
  \begin{column}{1\textwidth}
 
 
-%\begin{minipage}[t]{.45\textwidth}
-%
-%\begin{figure}
-% \centering
-% \includegraphics[width=\linewidth]{figures/pep_MHCII.pdf}
-%\caption{MHCII molecules present peptides derived from the extracellular to T-helper cells. Here we predict which peptides are able to bind a given MHCII molecule, which is an important step on the way to identifying T-cell epitopes.}
-%\end{figure} 			
-%
-%\end{minipage} \hspace{1cm} \begin{minipage}[t]{.45\textwidth}
+
 \centering
 \begin{minipage}[t]{0.98\textwidth}
 
@@ -139,7 +131,7 @@ where
 \end{align*}
 %
 %
-When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM net with user/item embeddings as input features instead of a simple inner product between the two.
+When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM net with user/item embeddings as input features instead of a simple inner product between the two, \cite{paragraph_embedding_comparison, Embedding, doc2vec}.
 \vspace{0.5cm}
 }
 
@@ -177,7 +169,7 @@ When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM
 
 
 \end{minipage} 
-%\end{minipage} \hspace{1cm} \begin{minipage}[t]{.5\textwidth}
+
 
 
 \vspace{0.5cm}
@@ -189,6 +181,8 @@ When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM
 \vskip-1ex
 \end{block}
 \vfill
+
+
 
 % ---------------------------------------------------------%
 % set up block  DATA
@@ -211,12 +205,12 @@ When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM
 	{\setbeamertemplate{itemize items}[ball]
 	\begin{itemize}
 	\footnotesize{
-	\item  \quad Feed Forward Networks 
-	\item  \quad LSTM Networks}
+	\item  \quad Feed Forward Networks, \cite{ncf2017, nielsenneural} 
+	\item  \quad LSTM Networks, \cite{lstm1997}}
 	\end{itemize}}
-	And compare the results to the baseline model
+	And compare the results to the baseline model, \cite{lcmr2018, itemBasedCF2001, HU2008CollaborativeFF}
 	\item We implement the models using the \textbf{Pytorch} deep learning framework and use \textbf{TorchText} for creating word embeddings and batch iterators
-	\item We train the models on the \textbf{Google Colab} GPU cloud
+	\item We train the models using virtual machines on the \textbf{Google Colab} GPU cloud
 }
 \end{itemize}
 
@@ -269,7 +263,7 @@ When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM
 \centering
 \caption{Results} 
 \label{res:MovieLens_results}
-\begin{tabular}{llllll}
+\begin{tabular}{lrrr}
 \toprule
 Model  & Best accuracy        & Best Epoch     & Something else    \\
 \midrule
@@ -284,13 +278,13 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
  
  \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{movielensnet.png}
+\includegraphics[width=0.75\textwidth]{movielensnet.png}
  \caption{MovieLens neural net representation}
 \end{figure}  
 
  \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{MovieLens_ratings_true.eps}
+\includegraphics[width=0.49\textwidth]{MovieLens_ratings_true.eps}
  \caption{MovieLens ratings for the first 50 users and 100 movies. The data has been padded with zeroes for all user-movie combinations that have not been given an explicit rating}
 \end{figure}  
 
@@ -309,17 +303,6 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \vfill
 
 
-% ---------------------------------------------------------%
-% set up block  MovieLens
-% ---------------------------------------------------------%
-
-
- 
-
-
-% ---------------------------------------------------------%
-% set up block REFERENCES
-% ---------------------------------------------------------%
 
 
 
@@ -342,21 +325,11 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \parbox[t][\columnheight]{\textwidth}{ % must be some better way to set the the height, width and textwidth simultaneously
             											% Since all columns are the same length, it is all nice and tidy.  You have to get the height empirically
             
-% ---------------------------------------------------------%
-% set up block RESULTS + DISCUSSION
-% ---------------------------------------------------------%
-
-% ---------------------------------------------------------%
-% set up block  MovieLens
-% ---------------------------------------------------------%
-
 
  \begin{block}{CiteULike}
  \begin{columns}
  \begin{column}{1\textwidth}
 
-
-%\vspace{0.5cm}
 
 \centering
 \begin{minipage}[t]{0.96\textwidth}
@@ -368,7 +341,7 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
  \begin{column}{0.45\textwidth}
  \justifying
  \footnotesize{
-	The CiteULike dataset consist of users represented by an Id and articles represented by an Id, the Title and the article Abstract. The user-article interaction is represented as a binary attribute on whether a specific userId has put an ArticleId in his/her "basket". The modelling aim is to build a model that can recommend articles to users based on what they have previously read. }
+	The CiteULike dataset consist of users represented by an Id and articles represented by an Id, the article Title and the article Abstract. The user-article interaction is represented as a binary attribute on whether a specific userId has put an ArticleId in his/her "basket". The modelling aim is to build a model that can recommend articles to users based on what they have previously read. }
  \end{column}
  \begin{column}{0.49\textwidth}
 
@@ -376,8 +349,8 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \small
 \centering
 \caption{Results} 
-\label{res:TalentFox_results}
-\begin{tabular}{llllll}
+\label{res:CuL_results}
+\begin{tabular}{lrrr}
 \toprule
 Model  & Best accuracy        & Best Epoch     & Something else    \\
 \midrule
