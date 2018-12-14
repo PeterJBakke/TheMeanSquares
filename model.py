@@ -15,7 +15,7 @@ device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 class MovieLensNet(nn.Module):
-    def __init__(self, user_field, movie_field, device, n_factors=1000, hidden1=10, p1=0.3, p2=0.3):
+    def __init__(self, user_field, movie_field, device, n_factors=10, hidden1=10, p1=0.3, p2=0.3):
         super(MovieLensNet, self).__init__()
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         print(self.device)

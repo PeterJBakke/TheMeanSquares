@@ -13,6 +13,10 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
     net.train()
     prev_epoch = 0
     train_loss = []
+    val_res = []
+    train_res = []
+    train_accs = 0
+    train_length = 0
 
     for batch in train_iter:
 
@@ -21,6 +25,9 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
         batch_loss = criterion(output.reshape(-1), batch.rating)
 
         train_loss.append(get_numpy(batch_loss))
+
+        train_accs += accuracy(output.reshape(-1), batch.rating) * batch.batch_size
+        train_length += batch.batch_size
 
         optimizer.zero_grad()
         batch_loss.backward()
@@ -41,17 +48,23 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
             val_loss /= val_length
             val_accs /= val_length
 
+            val_res.append(val_accs)
+
             print("Epoch {}:  Loss: {:.4f}, Avg distance from target: {:.4f}".format(train_iter.epoch, val_loss,
                                                                                      val_accs))
+
+
             net.train()
 
         prev_epoch = train_iter.epoch
 
         if train_iter.epoch == num_epochs:
             print('Maximum number of Epochs reached')
+            plot_res(train_res, val_res, train_iter.epoch)
             #print(type(train_loss))
             #print(train_loss)
             #plot_movielens_train_loss(error=train_loss)
+            # plot_res2(train_res=train_loss, val_res=train_loss, num_res=train_loss)
 
             # print('Diagram of MovieLens net')
             # weights = [net.weight.data.numpy().T]
@@ -64,7 +77,7 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
 def plot_movielens_train_loss(error):
     x_val = np.asarray(error)
     plt.figure()
-    plt.plasma(x_val)
+    plt.plot(x_val)
     plt.xlabel('train loss')
     plt.show()
 
