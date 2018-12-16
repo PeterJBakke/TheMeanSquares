@@ -251,25 +251,34 @@ When we turn to the more advanced models $f(\cdot)$ is e.g. a neural net or LSTM
 \hspace{0.5cm} 
 \vspace{-1cm}
 \begin{columns}
- \begin{column}{0.45\textwidth}
+ \begin{column}{0.60\textwidth}
  \justifying
  \footnotesize{
-	The MoveieLens dataset consist of 20 million ratings on a scale from 0.5 to 5, of 27,000 different movies by 138,000 users. Taking outset in the MovieLens dataset the objective is to predict how a specific user will rate a specific movie. }
+	The MoveieLens dataset consist of 20 million ratings on a scale from 0.5 to 5, of 27,000 different movies by 138,000 users. Taking outset in the MovieLens dataset the objective is to predict how a specific user will rate a specific movie. Figure \ref{fig:simple_cf_movielens} display the architecture we use in the simple collaborative filtering neural network for the MovieLens dataset.
+	
+		Table \ref{res:MovieLens_results} show the root mean squared error (RMSE) for the matrix factorization and the simple collaborative filtering neural network on the MovieLens dataset. For comparison we have included the RMSE from FastAI that use a similar model on the same dataset.
+	
+	The Figures \ref{fig:movielens_mf} and \ref{fig:movielens_nn} show how the matrix factorization and simple collaborative filtering neural network trains on the MovieLens dataset.
+	
+%	Figure \ref{fig:movielens_nn} show how the simple collaborative filtering neural network model trains on the MovieLens data set. The model is able to achieve around 40\% accuracy on the validation set. The result is not quite as good as we have hoped for, especially as it seems like the model is not learning a lot over the Epochs.
+}
  \end{column}
- \begin{column}{0.49\textwidth}
+ \begin{column}{0.39\textwidth}
 
 \begin{table}[h]
 \small
 \centering
-\caption{Results} 
+\caption{Results}
 \label{res:MovieLens_results}
-\begin{tabular}{lrrr}
+\begin{tabular}{lc}
 \toprule
-Model  & Best accuracy        & Best Epoch     & Something else    \\
+Model  & RMSE\\
 \midrule
-MF  	&  0.1337        & 2       & 0.1337    \\
-FNN	  &  0.1337        & 12      & 0.1337    \\
+Matrix Factorization      &  0.895 \\
+Neural Network - FastAI      &  0.889  \\
+Neural Network - our result      &  0.881\\
 \bottomrule
+
 \end{tabular}
 \end{table}
 
@@ -279,14 +288,37 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
  \begin{figure}
 
 \includegraphics[width=0.75\textwidth]{movielensnet.png}
- \caption{MovieLens neural net representation}
+ \caption{MovieLens neural net representation} \label{fig:simple_cf_movielens}
 \end{figure}  
+
+\begin{columns}
+ \begin{column}{0.49\textwidth}
+ %\justifying
+ %\footnotesize{
+	
+%	Table \ref{res:MovieLens_results} show the root mean squared error (RMSE) for the matrix factorization and the simple collaborative filtering neural network on the MovieLens dataset. For comparison we have included the RMSE from FastAI that use a similar model on the same dataset.
+	
+%	Figure \ref{fig:movielens_nn} show how the simple collaborative filtering neural network model trains on the MovieLens data set. The model is able to achieve around 40\% accuracy on the validation set. The result is not quite as good as we have hoped for, especially as it seems like the model is not learning a lot over the Epochs.}
+\begin{figure}
+
+\includegraphics[width=0.75\textwidth]{MatrixFactorization_MovieLens.jpg}
+ \caption{Training and Validation loss and Accuracy for the Matrix Factorization} \label{fig:movielens_mf}
+\end{figure}  
+
+ \end{column}
+ \begin{column}{0.49\textwidth}
 
  \begin{figure}
 
-\includegraphics[width=0.49\textwidth]{MovieLens_ratings_true.eps}
- \caption{MovieLens ratings for the first 50 users and 100 movies. The data has been padded with zeroes for all user-movie combinations that have not been given an explicit rating}
+\includegraphics[width=0.75\textwidth]{neuralnet.jpg}
+ \caption{Training and Validation loss and Accuracy for the Neural Network} \label{fig:movielens_nn}
 \end{figure}  
+
+ \end{column}
+ \end{columns}
+
+
+
 
 \end{minipage}
 
@@ -302,14 +334,7 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \end{block}
 \vfill
 
-\begin{block}{Acknowledgements}
-\centering
-\begin{minipage}[t]{0.98\textwidth}
 
-\footnotesize{The authors wish to thank Alexander R. Johansen and Jose Juan Almagro Armenteros from DTU Lyngby for their constructive feedback and fruitful discussions during the process of the project.}
-\end{minipage}
-\end{block}
-\vfill
 
 
 
@@ -358,13 +383,13 @@ FNN	  &  0.1337        & 12      & 0.1337    \\
 \centering
 \caption{Results} 
 \label{res:CuL_results}
-\begin{tabular}{lrrr}
+\begin{tabular}{lcc}
 \toprule
-Model  & Best accuracy        & Best Epoch     & Something else    \\
+Model  & Val. Accuracy        & \#Epoch         \\
 \midrule
-MF  	&  0.1337        & 2       & 0.1337    \\
-FNN	  &  0.1337        & 12      & 0.1337    \\
-LSTM	&  0.1337        & 24      & 0.1337    \\
+MF  	&  74\%        	 & 20           \\
+FNN	  &  58\%        & 3         \\
+LSTM	&  84\%        & 15         \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -374,14 +399,14 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
  
  \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{CiteuLikeNet.png}
- \caption{CiteULike Neural net representation}
+\includegraphics[width=0.9\textwidth]{CiteuLikeNet.png}
+ \caption{CiteULike Neural net representation} \label{fig:CuL_net}
 \end{figure}  
 
 \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{CiteuLikeLSTM.png}
- \caption{CiteULike LSTM net representation. For clarity the temporal structure of the LSTM blocks have not been shown.}
+\includegraphics[width=0.9\textwidth]{CiteuLikeLSTM.png}
+ \caption{CiteULike LSTM net representation. For clarity the temporal structure of the LSTM blocks have not been shown.} \label{fig:CuL_lstm_net}
 \end{figure}
 
 
@@ -391,7 +416,7 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
 
 	\begin{figure}
 
-\includegraphics[width=0.85\textwidth]{sorted_batch.png}
+\includegraphics[width=0.75\textwidth]{sorted_batch.png}
  \caption{Batch sorting} \label{fig:batch_sorted}
 \end{figure}
 
@@ -399,22 +424,35 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
  \begin{column}{0.66\textwidth}
 	\justifying
  \footnotesize{
-	When training the model we need to take into account that the sequences are of varying length in order to not waste too much computation on calculating on the padding. Figure \ref{fig:batch_sorted} visualize how the amount of padding (the grey area) is minimized in the batch by sorting the documents on the length of the sentences.}
+	Figure \ref{fig:CuL_net} show the simple collaborative filtering neural network architecture used on the CiteULike dataset. Figure \ref{fig:CuL_lstm_net} show the architecture of the collaborative filtering network enhanced with a number of LSTM layers and blocks.
+	
+	When training the model we need to take into account that the sequences are of varying length in order to not waste too much computation on calculating on the padding. Figure \ref{fig:batch_sorted} visualize how the amount of padding (the grey area) is minimized in the batch by sorting the documents on the length of the sentences.
+	
+	Table \ref{res:CuL_results} show the best achieved accuracy on the validation set in the three different models together with how many Epochs it took to reach that result.
+	}
  \end{column}
  \end{columns}
 
 
 \begin{columns}
- \begin{column}{0.45\textwidth}
- \justifying
- \footnotesize{
-	Figure \ref{fig:lstm_results} show how the LSTM model trains on the CiteULike data set. The model is able to achieve around 80\% accuracy on the validation set. The 80\% accuracy is a pretty good result since we right now only train on the Titles of the articles. We will try to improve the accuracy by training on the article Abstracts which contain a lot more information about the content of the article compared to the Title.}
+ \begin{column}{0.49\textwidth}
+% \justifying
+% \footnotesize{
+%	Figure \ref{fig:lstm_results} show how the LSTM model trains on the CiteULike data set. The model is able to achieve around 80\% accuracy on the validation set. The 80\% accuracy is a pretty good result since we right now only train on the Titles of the articles. We will try to improve the accuracy by training on the article Abstracts which contain a lot more information about the content of the article compared to the Title.}
+
+
+\begin{figure}
+
+\includegraphics[width=0.7\textwidth]{matrix.png} 
+ \caption{Training and Validation loss and Accuracy for the Matrix Factorization on the CiteULike data} \label{fig:CuL_mf}
+\end{figure}
+
  \end{column}
  \begin{column}{0.49\textwidth}
 
 \begin{figure}
 
-\includegraphics[width=0.85\textwidth]{lstm.png} 
+\includegraphics[width=0.7\textwidth]{lstm.png} 
  \caption{Training and Validation loss and Accuracy for the LSTM net on the CiteULike data} \label{fig:lstm_results}
 \end{figure}
 
@@ -477,7 +515,14 @@ LSTM	&  0.1337        & 24      & 0.1337    \\
 %\end{block}
 %
 %\vfill
+\begin{block}{Acknowledgements}
+\centering
+\begin{minipage}[t]{0.98\textwidth}
 
+\footnotesize{The authors wish to thank Alexander R. Johansen and Jose Juan Almagro Armenteros from DTU Lyngby for their constructive feedback and fruitful discussions during the process of the project.}
+\end{minipage}
+\end{block}
+\vfill
 
 \begin{block}{References}
 
