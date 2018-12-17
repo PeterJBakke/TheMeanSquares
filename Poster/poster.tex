@@ -34,7 +34,9 @@
 \graphicspath{{figures/}}
  
 \title{
-\huge Collaborative Text Filtering}
+\huge Collaborative Text Filtering \\
+\Large The Mean Squares
+}
 \author{Peter J. Bakke (s183268), Daniel Horvath (s172185), Christian Hansen (s146498) and Thomas Brenner (s181857)}
 \institute[Department]{\small DTU Compute, Technical University of Denmark}
 \date[December. 17th, 2018]{December. 17th, 2018}
@@ -310,7 +312,7 @@ Neural Network - our result      &  0.881\\
 
  \begin{figure}
 
-\includegraphics[width=0.75\textwidth]{neuralnet.jpg}
+\includegraphics[width=0.75\textwidth]{movie_lens_res.png}
  \caption{Training and Validation loss and Accuracy for the Neural Network} \label{fig:movielens_nn}
 \end{figure}  
 
@@ -399,13 +401,13 @@ LSTM	&  84\%        & 15         \\
  
  \begin{figure}
 
-\includegraphics[width=0.9\textwidth]{CiteuLikeNet.png}
+\includegraphics[width=0.95\textwidth]{CiteuLikeNet.png}
  \caption{CiteULike Neural net representation} \label{fig:CuL_net}
 \end{figure}  
 
 \begin{figure}
 
-\includegraphics[width=0.9\textwidth]{CiteuLikeLSTM.png}
+\includegraphics[width=0.95\textwidth]{CiteuLikeLSTM.png}
  \caption{CiteULike LSTM net representation. For clarity the temporal structure of the LSTM blocks have not been shown.} \label{fig:CuL_lstm_net}
 \end{figure}
 
@@ -443,7 +445,7 @@ LSTM	&  84\%        & 15         \\
 
 \begin{figure}
 
-\includegraphics[width=0.7\textwidth]{matrix.png} 
+\includegraphics[width=0.75\textwidth]{matrix.png} 
  \caption{Training and Validation loss and Accuracy for the Matrix Factorization on the CiteULike data} \label{fig:CuL_mf}
 \end{figure}
 
@@ -452,7 +454,7 @@ LSTM	&  84\%        & 15         \\
 
 \begin{figure}
 
-\includegraphics[width=0.7\textwidth]{lstm.png} 
+\includegraphics[width=0.75\textwidth]{lstm.png} 
  \caption{Training and Validation loss and Accuracy for the LSTM net on the CiteULike data} \label{fig:lstm_results}
 \end{figure}
 
