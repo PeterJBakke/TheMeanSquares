@@ -63,43 +63,98 @@ class MovieLensNet(nn.Module):
 
 
 class TalentNet(nn.Module):
-    def __init__(self, job_title, candidate_title):
+    def __init__(self, job_title, job_description, candidate_title, candidate_resume, p1=0.2, p2=0.2, p3=0.2):
         super(TalentNet, self).__init__()
         self.job_title_vectors = job_title.vocab.vectors
-        self.job_num_embeddings = self.job_title_vectors.size()[0]
-        self.job_embedding_dim = self.job_title_vectors.size()[1]
+        self.job_title_num_embeddings = self.job_title_vectors.size()[0]
+        self.job_title_embedding_dim = self.job_title_vectors.size()[1]
+        
+        self.job_description_vectors = job_description.vocab.vectors
+        self.job_description_num_embeddings = self.job_description_vectors.size()[0]
+        self.job_description_embedding_dim = self.job_description_vectors.size()[1]
 
         self.candidate_title_vectors = candidate_title.vocab.vectors
-        self.candidate_num_embeddings = self.candidate_title_vectors.size()[0]
-        self.candidate_embedding_dim = self.candidate_title_vectors.size()[1]
+        self.candidate_title_num_embeddings = self.candidate_title_vectors.size()[0]
+        self.candidate_title_embedding_dim = self.candidate_title_vectors.size()[1]
 
-        self.job_title_embeddings = nn.Embedding(self.job_num_embeddings, self.job_embedding_dim)
+        self.candidate_resume_vectors = candidate_resume.vocab.vectors
+        self.candidate_resume_num_embeddings = self.candidate_resume_vectors.size()[0]
+        self.candidate_resume_embedding_dim = self.candidate_resume_vectors.size()[1]
+
+        self.job_title_embeddings = nn.Embedding(self.job_title_num_embeddings, self.job_title_embedding_dim)
         self.job_title_embeddings.weight.data.copy_(self.job_title_vectors)
 
-        self.candidate_title_embeddings = nn.Embedding(self.candidate_num_embeddings, self.candidate_embedding_dim)
+        self.job_description_embeddings = nn.Embedding(self.job_description_num_embeddings, self.job_description_embedding_dim)
+        self.job_description_embeddings.weight.data.copy_(self.job_description_vectors)
+
+        self.candidate_title_embeddings = nn.Embedding(self.candidate_title_num_embeddings, self.candidate_title_embedding_dim)
         self.candidate_title_embeddings.weight.data.copy_(self.candidate_title_vectors)
 
-    def forward(self, data):
+        self.candidate_resume_embeddings = nn.Embedding(self.candidate_resume_num_embeddings, self.candidate_resume_embedding_dim)
+        self.candidate_resume_embeddings.weight.data.copy_(self.candidate_resume_vectors)
+
+        self.lin1 = nn.Sequential(
+            nn.Dropout(p1),
+            nn.Linear(12000, 4000),
+            nn.ReLU(),
+        )
+
+        self.lin2 = nn.Sequential(
+            nn.Dropout(p2),
+            nn.Linear(4000, 100),
+            nn.ReLU(),
+        )
+
+        self.lin3 = nn.Sequential(
+            nn.Dropout(p3),
+            nn.Linear(100, 10),
+            nn.ReLU(),
+        )
+
+
+    def forward(self, data, job_lengths, candidate_lengths):
         job_title = data.job_title
+        job_description = data.job_description
         candidate_title = data.candidate_title
+        candidate_resume = data.candidate_resume
 
         numpy_job = job_title.cpu().data.numpy()
         num_non_ones = np.count_nonzero(np.subtract(numpy_job, np.ones(numpy_job.shape)), axis=0)
-        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.job_embedding_dim, 1)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.job_title_embedding_dim, 1)
         num_non_ones = torch.tensor(num_non_ones).to(device).float()
 
         job_title = self.job_title_embeddings(job_title)
         job_title = torch.sum(job_title, 0).to(device) / num_non_ones
 
+        numpy_job = job_description.cpu().data.numpy()
+        num_non_ones = np.count_nonzero(np.subtract(numpy_job, np.ones(numpy_job.shape)), axis=0)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.job_description_embedding_dim, 1)
+        num_non_ones = torch.tensor(num_non_ones).to(device).float()
+
+        job_description = self.job_description_embeddings(job_description)
+        job_description = torch.sum(job_description, 0).to(device) / num_non_ones
+
         numpy_candidate = candidate_title.cpu().data.numpy()
         num_non_ones = np.count_nonzero(np.subtract(numpy_candidate, np.ones(numpy_candidate.shape)), axis=0)
-        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.candidate_embedding_dim, 1)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.candidate_title_embedding_dim, 1)
         num_non_ones = torch.tensor(num_non_ones).to(device).float()
 
         candidate_title = self.candidate_title_embeddings(candidate_title)
         candidate_title = torch.sum(candidate_title, 0).to(device) / num_non_ones
 
-        x = (job_title * candidate_title).sum(1)
+        numpy_candidate = candidate_resume.cpu().data.numpy()
+        num_non_ones = np.count_nonzero(np.subtract(numpy_candidate, np.ones(numpy_candidate.shape)), axis=0)
+        num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.candidate_resume_embedding_dim, 1)
+        num_non_ones = torch.tensor(num_non_ones).to(device).float()
+
+        candidate_resume = self.candidate_resume_embeddings(candidate_resume)
+        candidate_resume = torch.sum(candidate_resume, 0).to(device) / num_non_ones
+
+        catted = torch.cat((job_title, job_description, candidate_title, candidate_resume)).reshape(-1)
+
+        x = self.lin1(catted)
+        x = self.lin2(x)
+        x = self.lin3(x)
 
         out = torch.sigmoid(x)
 

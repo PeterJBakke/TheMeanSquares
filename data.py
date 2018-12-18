@@ -88,31 +88,30 @@ class TalentFox:
     def __init__(self, batch_size=100):
         print('Device: ' + str(device))
 
-        self.candidate_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=False, use_vocab=True)
-        #self.candidate_resume = data.Field(sequential=True, lower=True, include_lengths=True)
-        self.job_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=False, use_vocab=True)
-        #self.job_description = data.Field(sequential=True, lower=True, include_lengths=True)
+        self.candidate_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
+        self.candidate_resume = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
+        self.job_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
+        self.job_description = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
         self.match_status = data.Field(sequential=False, use_vocab=False)
 
-        self.train_set, self.validation_set, self.test_set = data.TabularDataset.splits(
+        self.train_set, self.validation_set = data.TabularDataset.splits(
             path='./Datasets/talentfox_match_data/',
             train='train_data.csv',
             validation='val_data.csv',
-            test='test_data.csv',
             format='csv',
             fields=[
                 ('index', None),
-                #('job_description', None),
                 ('job_title', self.job_title),
-                #('candidate_resume', None),
+                ('job_description', self.job_description),
                 ('candidate_title', self.candidate_title),
+                ('candidate_resume', self.candidate_resume),
                 ('match_status', self.match_status)
             ],
             skip_header=True,
         )
 
-        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
-            (self.train_set, self.validation_set, self.test_set),
+        self.train_iter, self.validation_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set),
             batch_size=batch_size,
             shuffle=True,
             device=device,
@@ -122,10 +121,10 @@ class TalentFox:
 
         self.match_status.build_vocab(self.train_set)
         url = 'https://s3-us-west-1.amazonaws.com/fasttext-vectors/wiki.de.vec'
-        #self.job_description.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
         self.job_title.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
-       # self.candidate_resume.build_vocab(self.train_set, max_size=None, vectors=vocab.Vectors('wiki.simple.vec', url=url))
+        self.job_description.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
         self.candidate_title.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
+        self.candidate_resume.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
 
 class citeulike:
     """
@@ -144,11 +143,10 @@ class citeulike:
         self.ratings = data.Field(sequential=False, use_vocab=False)
         # self.doc_abstract = data.Field(sequential=True, tokenize=tokenizer, lower=True)
 
-        self.train_set, self.validation_set, self.test_set = data.TabularDataset.splits(
+        self.train_set, self.validation_set = data.TabularDataset.splits(
             path='./Datasets/citeulike/',
             train='train_data.csv',
             validation='val_data.csv',
-            test='test_data.csv',
             format='csv',
             fields=[
                 ('index', None),
@@ -161,8 +159,8 @@ class citeulike:
             skip_header=True,
         )
 
-        self.train_iter, self.validation_iter, self.test_iter = data.BucketIterator.splits(
-            (self.train_set, self.validation_set, self.test_set),
+        self.train_iter, self.validation_iter = data.BucketIterator.splits(
+            (self.train_set, self.validation_set),
             batch_size=batch_size,
             shuffle=True,
             device=device,
@@ -184,7 +182,6 @@ def to_csv_citeulike(total=0):
                         sep=',')
     docs.set_index('doc.id', inplace=True)
     titles, abstracts, users_list, ratings, docs_list = [], [], [], [], []
-    test_titles, test_abstracts, test_users_list, test_ratings, test_docs_list = [], [], [], [], []
     val_titles, val_abstracts, val_users_list, val_ratings, val_docs_list = [], [], [], [], []
     cnt = 0
     max_user = users.iloc[-1]['user.id'] if total is 0 else users.iloc[total]['user.id']
@@ -193,14 +190,7 @@ def to_csv_citeulike(total=0):
         if total is not 0:
             if cnt == total:
                 break
-        if cnt % 9 == 0:
-            test_titles.append(docs.loc[row['doc.id']]['raw.title'])
-            test_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
-            test_users_list.append(row['user.id'] - 1)
-            test_ratings.append(1)
-            test_docs_list.append(row['doc.id'])
-            continue
-        if cnt % 8 == 0:
+        if cnt % 8 == 0 or cnt % 3 == 0:
             val_titles.append(docs.loc[row['doc.id']]['raw.title'])
             val_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
             val_users_list.append(row['user.id'] - 1)
@@ -223,23 +213,23 @@ def to_csv_citeulike(total=0):
          'raw.abstract': abstracts}
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/citeulike/train_data.csv')
+
     d = {'user.id': val_users_list, 'doc.id': val_docs_list, 'rating': val_ratings, 'raw.title': val_titles,
          'raw.abstract': val_abstracts}
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/citeulike/val_data.csv')
-    d = {'user.id': test_users_list, 'doc.id': test_docs_list, 'rating': test_ratings, 'raw.title': test_titles,
-         'raw.abstract': test_abstracts}
-    df = pd.DataFrame(data=d)
-    df.to_csv('Datasets/citeulike/test_data.csv')
 
-def to_csv_talentfox(total=0, cols=['job_title', 'candidate_title', 'match_status']):
+def to_csv_talentfox(total=0):
     keys = ('mba', 'it', 'ceo', 'ad', 'bdm', 'kam', 'ka', 'dr.', 'bwl', 'oa', 'csm')
-    docs = pd.read_csv('Datasets/talentfox_match_data/processed_dataset.csv', usecols=cols, header=0, sep=',')
+    docs = pd.read_csv('Datasets/talentfox_match_data/processed_dataset.csv', header=0, sep=',')
     job_description, job_title, candidate_resume, candidate_title, match_status = [], [], [], [], []
-    test_job_description, test_job_title, test_candidate_resume, test_candidate_title, test_match_status = [], [], [], [], []
     val_job_description, val_job_title, val_candidate_resume, val_candidate_title, val_match_status = [], [], [], [], []
     cnt = 0
     for index, row in docs.iterrows():
+        if len(str(docs.loc[index]['candidate_resume'])) < 4:
+            continue
+        if len(str(docs.loc[index]['job_description'])) < 4:
+            continue
         if len(str(docs.loc[index]['job_title'])) < 4:
             if str(docs.loc[index]['job_title']).lower() not in keys:
                 continue
@@ -254,44 +244,32 @@ def to_csv_talentfox(total=0, cols=['job_title', 'candidate_title', 'match_statu
         if total is not 0:
             if cnt == total:
                 break
-        if cnt % 9 == 0:
-            #test_job_description.append(docs.loc[index]['job_description'])
-            test_job_title.append(docs.loc[index]['job_title'])
-            #test_candidate_resume.append(docs.loc[index]['candidate_resume'])
-            test_candidate_title.append(docs.loc[index]['candidate_title'])
-            test_match_status.append(match)
-            continue
-        if cnt % 8 == 0:
-            #val_job_description.append(docs.loc[index]['job_description'])
+        if cnt % 8 == 0 or cnt % 3 == 0:
+            val_job_description.append(docs.loc[index]['job_description'])
             val_job_title.append(docs.loc[index]['job_title'])
-            #val_candidate_resume.append(docs.loc[index]['candidate_resume'])
+            val_candidate_resume.append(docs.loc[index]['candidate_resume'])
             val_candidate_title.append(docs.loc[index]['candidate_title'])
             val_match_status.append(match)
             continue
-        #job_description.append(docs.loc[index]['job_description'])
+        job_description.append(docs.loc[index]['job_description'])
         job_title.append(docs.loc[index]['job_title'])
-        #candidate_resume.append(docs.loc[index]['candidate_resume'])
+        candidate_resume.append(docs.loc[index]['candidate_resume'])
         candidate_title.append(docs.loc[index]['candidate_title'])
         match_status.append(match)
 
-    d = {'job_title': job_title, 'candidate_title': candidate_title, 'match_status': match_status}
+    d = {'job_title': job_title, 'job_description': job_description, 'candidate_title': candidate_title, 'candidate_resume': candidate_resume, 'match_status': match_status}
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/talentfox_match_data/train_data.csv')
-    d = {'job_title': val_job_title, 'candidate_title': val_candidate_title, 'match_status': val_match_status}
 
+    d = {'job_title': val_job_title, 'job_description': val_job_description, 'candidate_title': val_candidate_title, 'candidate_resume': val_candidate_resume, 'match_status': val_match_status}
     df = pd.DataFrame(data=d)
     df.to_csv('Datasets/talentfox_match_data/val_data.csv')
-    d = {'job_title': test_job_title, 'candidate_title': test_candidate_title, 'match_status': test_match_status}
 
-    df = pd.DataFrame(data=d)
-    df.to_csv('Datasets/talentfox_match_data/test_data.csv')
-
-STOP_WORDS = {'(', ')', '/', 'm', 'w', '-', ' ', '.'}
+STOP_WORDS = {'(', ')', '/', 'm', 'w', '-', ' ', '.', '\t'}
 
 def tokenizer(text):  # create a tokenizer function
     tokens = [tok.text for tok in spacy_en.tokenizer(text)]
     tokens = list(filter(lambda token: token not in STOP_WORDS, tokens))
-    tokens = list(filter(lambda token: len(token) > 3, tokens))
     return tokens
 
 if __name__ == "__main__":

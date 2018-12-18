@@ -40,7 +40,7 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
         if train_iter.epoch == num_epochs:
             break
 
-def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion, num_epochs=5):
+def talent_fox_train(train_iter, val_iter, net, optimizer, criterion, ratio, num_epochs=5):
     net.train()
     prev_epoch = 0
     train_loss = []
@@ -49,13 +49,18 @@ def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
     train_sum = 0
     val_res = []
     for batch in train_iter:
-        job_title, candidate_title, match_status = batch.job_title, batch.candidate_title, batch.match_status
+        (job_title, job_title_lengths) = batch.job_title
+        (job_description, job_description_lengths) = batch.job_description
+        (candidate_title, candidate_title_lengths) = batch.candidate_title
+        (candidate_resume, candidate_resume_lengths) = batch.candidate_resume
+        match_status = batch.match_status
+
         net.train()
 
-        batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
-        output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
+        batch_sampling = {'job_title': job_title, 'job_description': job_description, 'candidate_title': candidate_title, 'candidate_resume': candidate_resume}
+        output = net(SimpleNamespace(**batch_sampling), job_title_lengths, candidate_title_lengths).reshape(-1)
         targets = match_status.float().to(device)
-        criterion.weight = weights(targets)
+        criterion.weight = weights(targets, ratio)
         batch_loss = criterion(output, targets)
 
         train_loss.append(get_numpy(batch_loss))
@@ -75,8 +80,14 @@ def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
             for val_batch in val_iter:
                 if val_iter.epoch != train_iter.epoch-1:
                     break
-                job_title, candidate_title, match_status = batch.job_title, val_batch.candidate_title, val_batch.match_status
-                batch_sampling = {'job_title': job_title, 'candidate_title': candidate_title}
+                (job_title, job_title_lengths) = val_batch.job_title
+                (job_description, job_description_lengths) = val_batch.job_description
+                (candidate_title, candidate_title_lengths) = val_batch.candidate_title
+                (candidate_resume, candidate_resume_lengths) = val_batch.candidate_resume
+                match_status = val_batch.match_status
+
+                batch_sampling = {'job_title': job_title, 'job_description': job_description,
+                                  'candidate_title': candidate_title, 'candidate_resume': candidate_resume}
                 val_output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
                 val_target = match_status.float().to(device)
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
@@ -90,11 +101,11 @@ def talent_fox_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
             val_res.append(val_accs)
 
             print(
-                "Epoch {}: Train loss: {:.2f},  Train accs total: {:.2f}, Train accs positive: {}/{}"
-                    .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), train_accs_pos, train_sum))
+                "Epoch {}: Train loss: {:.3f},  Train accs total: {:.3f}, Train accs positive: {:.3f}"
+                    .format(train_iter.epoch, np.mean(train_loss), 1.0 - np.mean(train_accs), train_accs_pos/train_sum))
             print(
-                "          Validation loss: {:.2f}, Validation accs total: {:.2f}, Validation accs positive: {}/{}"
-                    .format(val_loss, 1.0 - val_accs, val_accs_pos, val_sum))
+                "          Validation loss: {:.3f}, Validation accs total: {:.3f}, Validation accs positive: {:.3f}"
+                    .format(val_loss, 1.0 - val_accs, val_accs_pos/val_sum))
             print()
             train_loss = []
             train_accs = []
@@ -220,11 +231,11 @@ def accuracy_sigmoid(output, target):
 def accuracy(output, target):
     return torch.mean(torch.abs(torch.round(output) - target)).cpu().data.numpy()
 
-def weights(target):
+def weights(target, ratio):
     weight = []
     for val in target:
         if val == torch.tensor(1.):
-            weight.append(100.)
+            weight.append(ratio)
         else:
             weight.append(1.)
     return torch.tensor(weight)
