@@ -58,7 +58,7 @@ def talent_fox_train(train_iter, val_iter, net, optimizer, criterion, ratio, num
         net.train()
 
         batch_sampling = {'job_title': job_title, 'job_description': job_description, 'candidate_title': candidate_title, 'candidate_resume': candidate_resume}
-        output = net(SimpleNamespace(**batch_sampling), job_title_lengths, candidate_title_lengths).reshape(-1)
+        output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
         targets = match_status.float().to(device)
         criterion.weight = weights(targets, ratio)
         batch_loss = criterion(output, targets)

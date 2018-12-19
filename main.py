@@ -1,10 +1,9 @@
 """
 Main
 """
-
 import torch
 from torch import optim, nn
-from model import MovieLensNet, CiteULikeModel, LstmNet, TalentNet
+from model import MovieLensNet, CiteULikeModel, LstmNet, TalentNet, TalentNetExperimental
 from data import MovieLens, citeulike, TalentFox
 from train import movie_lens_train, train_with_negative_sampling, talent_fox_train
 
@@ -79,7 +78,7 @@ candidate_resume = tf.candidate_resume
 
 ratio = train_iter.dataset.fields['match_status'].vocab.freqs['0']/train_iter.dataset.fields['match_status'].vocab.freqs['1']
 
-net = TalentNet(job_title=job_title, job_description=job_description, candidate_title=candidate_title, candidate_resume=candidate_resume).to(device)
+net = TalentNetExperimental(job_title=job_title, job_description=job_description, candidate_title=candidate_title, candidate_resume=candidate_resume).to(device)
 opt = optim.SGD(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 
