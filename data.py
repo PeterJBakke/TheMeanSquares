@@ -190,7 +190,7 @@ def to_csv_citeulike(total=0):
         if total is not 0:
             if cnt == total:
                 break
-        if cnt % 8 == 0 or cnt % 3 == 0:
+        if cnt % 5 == 0:
             val_titles.append(docs.loc[row['doc.id']]['raw.title'])
             val_abstracts.append(docs.loc[row['doc.id']]['raw.abstract'])
             val_users_list.append(row['user.id'] - 1)
@@ -244,7 +244,7 @@ def to_csv_talentfox(total=0):
         if total is not 0:
             if cnt == total:
                 break
-        if cnt % 8 == 0 or cnt % 3 == 0:
+        if cnt % 5 == 0:
             val_job_description.append(docs.loc[index]['job_description'])
             val_job_title.append(docs.loc[index]['job_title'])
             val_candidate_resume.append(docs.loc[index]['candidate_resume'])

@@ -66,7 +66,7 @@ criterion = nn.BCELoss()
 train_with_negative_sampling(train_iter=train_iter, test_iter=test_iter, val_iter=validation_iter,
                                 net=net, optimizer=opt, criterion=criterion, num_epochs=50)
 """
-tf = TalentFox(batch_size=10)
+tf = TalentFox(batch_size=100)
 
 train_iter = tf.train_iter
 val_iter = tf.validation_iter

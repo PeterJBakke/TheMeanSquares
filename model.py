@@ -193,12 +193,15 @@ class TalentNetExperimental(nn.Module):
         candidate_resume = self.candidate_resume_embeddings(candidate_resume)
         candidate_resume = torch.sum(candidate_resume, 0).to(device) / num_non_ones
 
+        x = (job_title * job_description * candidate_title * candidate_resume).sum(1)
+
+        """
         catted = torch.cat([job_title, job_description, candidate_title, candidate_resume], dim=1)
 
         x = self.lin1(catted)
         x = self.lin2(x)
         x = self.lin3(x)
-
+        """
         out = torch.sigmoid(x)
 
         return out
