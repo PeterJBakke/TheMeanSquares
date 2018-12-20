@@ -24,11 +24,11 @@ class MovieLensNet(nn.Module):
 
         n_users = len(self.user_field.vocab.freqs)
         print(n_users)
-        self.u = nn.Embedding(n_users, n_factors)
+        self.u = nn.Embedding(n_users, n_factors, sparse=False)
         self.u.weight.data.uniform_(0, 0.1)
 
         n_movies = len(self.movie_field.vocab.freqs)
-        self.m = nn.Embedding(n_movies, n_factors)
+        self.m = nn.Embedding(n_movies, n_factors, sparse=False)
         self.m.weight.data.uniform_(0, 0.1)
 
         self.lin1 = nn.Sequential(
@@ -63,7 +63,7 @@ class MovieLensNet(nn.Module):
         x = torch.cat([self.get_user_embedding(batch.user), self.get_movie_embedding(batch.movie)], dim=1)
         x = self.lin1(x)
         x = self.lin2(x)
-        return torch.sigmoid(x) * (max_rating - min_rating + 1) + min_rating - 0.5
+        return torch.sigmoid(x) * (max_rating - min_rating ) + min_rating
 
 
 class CiteULikeModel(nn.Module):
