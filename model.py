@@ -112,7 +112,7 @@ class TalentNetExperimental(nn.Module):
         self.job_title_vectors = job_title.vocab.vectors
         self.job_title_num_embeddings = self.job_title_vectors.size()[0]
         self.job_title_embedding_dim = self.job_title_vectors.size()[1]
-        
+
         self.job_description_vectors = job_description.vocab.vectors
         self.job_description_num_embeddings = self.job_description_vectors.size()[0]
         self.job_description_embedding_dim = self.job_description_vectors.size()[1]
@@ -128,36 +128,46 @@ class TalentNetExperimental(nn.Module):
         self.job_title_embeddings = nn.Embedding(self.job_title_num_embeddings, self.job_title_embedding_dim)
         self.job_title_embeddings.weight.data.copy_(self.job_title_vectors)
 
-        self.job_description_embeddings = nn.Embedding(self.job_description_num_embeddings, self.job_description_embedding_dim)
+        self.job_description_embeddings = nn.Embedding(self.job_description_num_embeddings,
+                                                       self.job_description_embedding_dim)
         self.job_description_embeddings.weight.data.copy_(self.job_description_vectors)
 
-        self.candidate_title_embeddings = nn.Embedding(self.candidate_title_num_embeddings, self.candidate_title_embedding_dim)
+        self.candidate_title_embeddings = nn.Embedding(self.candidate_title_num_embeddings,
+                                                       self.candidate_title_embedding_dim)
         self.candidate_title_embeddings.weight.data.copy_(self.candidate_title_vectors)
 
-        self.candidate_resume_embeddings = nn.Embedding(self.candidate_resume_num_embeddings, self.candidate_resume_embedding_dim)
+        self.candidate_resume_embeddings = nn.Embedding(self.candidate_resume_num_embeddings,
+                                                        self.candidate_resume_embedding_dim)
         self.candidate_resume_embeddings.weight.data.copy_(self.candidate_resume_vectors)
 
-        self.lin1 = nn.Sequential(
+        self.hidden_dim = 50
+        self.lstm_layers = 5
+        self.lstm_job_description = nn.LSTM(input_size=self.job_description_embedding_dim, hidden_size=self.hidden_dim,
+                                            num_layers=self.lstm_layers)
+        self.lstm_candidate_resume = nn.LSTM(input_size=self.candidate_resume_embedding_dim,
+                                             hidden_size=self.hidden_dim, num_layers=self.lstm_layers)
+
+        self.l1 = nn.Sequential(
             nn.Dropout(p1),
-            nn.Linear(1200, 400),
-            nn.ReLU(),
+            nn.Linear(in_features=300,
+                      out_features=50),
         )
 
-        self.lin2 = nn.Sequential(
+        self.l2 = nn.Sequential(
             nn.Dropout(p2),
-            nn.Linear(400, 100),
-            nn.ReLU(),
+            nn.Linear(in_features=300,
+                      out_features=50),
         )
 
-        self.lin3 = nn.Sequential(
+        self.l3 = nn.Sequential(
             nn.Dropout(p3),
-            nn.Linear(100, 1),
-            nn.ReLU(),
+            nn.Linear(in_features=300,
+                      out_features=50),
         )
 
-    def forward(self, data):
+    def forward(self, data, job_description_lengths, candidate_resume_lengths):
         job_title = data.job_title
-        job_description = data.job_description
+        job_description = self.job_description_embeddings(data.job_description)
         candidate_title = data.candidate_title
         candidate_resume = data.candidate_resume
 
@@ -169,6 +179,12 @@ class TalentNetExperimental(nn.Module):
         job_title = self.job_title_embeddings(job_title)
         job_title = torch.sum(job_title, 0).to(device) / num_non_ones
 
+        ## Packing and padding
+        packed = rnn.pack_padded_sequence(job_description, job_description_lengths)
+        lstm_out, (lstm_hidden, lstm_state) = self.lstm_job_description(packed)
+        # padded, lengths = rnn.pad_packed_sequence(lstm_out)
+        last_hidden_job = lstm_hidden[-1]
+        """
         numpy_job = job_description.cpu().data.numpy()
         num_non_ones = np.count_nonzero(np.subtract(numpy_job, np.ones(numpy_job.shape)), axis=0)
         num_non_ones = np.repeat(np.expand_dims(num_non_ones, 1), self.job_description_embedding_dim, 1)
@@ -176,6 +192,7 @@ class TalentNetExperimental(nn.Module):
 
         job_description = self.job_description_embeddings(job_description)
         job_description = torch.sum(job_description, 0).to(device) / num_non_ones
+        """
 
         numpy_candidate = candidate_title.cpu().data.numpy()
         num_non_ones = np.count_nonzero(np.subtract(numpy_candidate, np.ones(numpy_candidate.shape)), axis=0)
@@ -193,7 +210,11 @@ class TalentNetExperimental(nn.Module):
         candidate_resume = self.candidate_resume_embeddings(candidate_resume)
         candidate_resume = torch.sum(candidate_resume, 0).to(device) / num_non_ones
 
-        x = (job_title * job_description * candidate_title * candidate_resume).sum(1)
+        job_title = self.l1(job_title)
+        candidate_title = self.l2(candidate_title)
+        candidate_resume = self.l3(candidate_resume)
+
+        x = (job_title * last_hidden_job * candidate_title * candidate_resume).sum(1)
 
         """
         catted = torch.cat([job_title, job_description, candidate_title, candidate_resume], dim=1)

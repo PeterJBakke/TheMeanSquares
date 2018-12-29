@@ -40,6 +40,7 @@ def movie_lens_train(train_iter, val_iter, net, test_iter, optimizer, criterion,
         if train_iter.epoch == num_epochs:
             break
 
+
 def talent_fox_train(train_iter, val_iter, net, optimizer, criterion, ratio, num_epochs=5):
     net.train()
     prev_epoch = 0
@@ -58,7 +59,7 @@ def talent_fox_train(train_iter, val_iter, net, optimizer, criterion, ratio, num
         net.train()
 
         batch_sampling = {'job_title': job_title, 'job_description': job_description, 'candidate_title': candidate_title, 'candidate_resume': candidate_resume}
-        output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
+        output = net(SimpleNamespace(**batch_sampling), job_description_lengths, candidate_resume_lengths).reshape(-1)
         targets = match_status.float().to(device)
         criterion.weight = weights(targets, ratio)
         batch_loss = criterion(output, targets)
@@ -88,7 +89,7 @@ def talent_fox_train(train_iter, val_iter, net, optimizer, criterion, ratio, num
 
                 batch_sampling = {'job_title': job_title, 'job_description': job_description,
                                   'candidate_title': candidate_title, 'candidate_resume': candidate_resume}
-                val_output = net(SimpleNamespace(**batch_sampling)).reshape(-1)
+                val_output = net(SimpleNamespace(**batch_sampling), job_description_lengths, candidate_resume_lengths).reshape(-1)
                 val_target = match_status.float().to(device)
                 val_loss += criterion(val_output, val_target) * val_batch.batch_size
                 val_accs += accuracy_sigmoid(val_output, val_target) * val_batch.batch_size

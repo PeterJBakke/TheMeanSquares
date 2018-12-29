@@ -76,10 +76,10 @@ job_description = tf.job_description
 candidate_title = tf.candidate_title
 candidate_resume = tf.candidate_resume
 
-ratio = train_iter.dataset.fields['match_status'].vocab.freqs['0']/train_iter.dataset.fields['match_status'].vocab.freqs['1']
+ratio = (train_iter.dataset.fields['match_status'].vocab.freqs['0']/train_iter.dataset.fields['match_status'].vocab.freqs['1'])
 
 net = TalentNetExperimental(job_title=job_title, job_description=job_description, candidate_title=candidate_title, candidate_resume=candidate_resume).to(device)
-opt = optim.SGD(net.parameters(), lr=1e-3, weight_decay=1e-5)
+opt = optim.Adam(net.parameters(), lr=1e-3, weight_decay=1e-5)
 criterion = nn.BCELoss()
 
-talent_fox_train(train_iter=train_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, ratio=ratio, num_epochs=10)
+talent_fox_train(train_iter=train_iter, val_iter=val_iter, net=net, optimizer=opt, criterion=criterion, ratio=ratio, num_epochs=1000)

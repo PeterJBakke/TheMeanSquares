@@ -89,13 +89,13 @@ class TalentFox:
         print('Device: ' + str(device))
 
         self.candidate_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
-        self.candidate_resume = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
+        self.candidate_resume = data.Field(sequential=True, lower=True, include_lengths=True, use_vocab=True)
         self.job_title = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
-        self.job_description = data.Field(sequential=True, lower=True, tokenize=tokenizer, include_lengths=True, use_vocab=True)
+        self.job_description = data.Field(sequential=True, lower=True, include_lengths=True, use_vocab=True)
         self.match_status = data.Field(sequential=False, use_vocab=False)
 
         self.train_set, self.validation_set = data.TabularDataset.splits(
-            path='./Datasets/talentfox_match_data/',
+            path='./gdrive/My Drive/Colab Notebooks/data/TalentFox/',
             train='train_data.csv',
             validation='val_data.csv',
             format='csv',
@@ -115,7 +115,7 @@ class TalentFox:
             batch_size=batch_size,
             shuffle=True,
             device=device,
-            sort_key=lambda x: len(x.job_title),
+            sort_key=lambda x: len(x.job_description),
             sort_within_batch=True,
             repeat=True)
 
@@ -125,6 +125,7 @@ class TalentFox:
         self.job_description.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
         self.candidate_title.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
         self.candidate_resume.build_vocab(self.train_set, vectors=vocab.Vectors('wiki.de.vec', url=url))
+
 
 class citeulike:
     """
