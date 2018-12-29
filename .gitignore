@@ -442,6 +442,10 @@ fabric.properties
 Datasets/talentfox_match_data/\.DS_Store
 
 Datasets/talentfox_match_data/processed_dataset\.csv
+Datasets/talentfox_match_data/test_data\.csv
+Datasets/talentfox_match_data/val_data\.csv
+Datasets/talentfox_match_data/train_data\.csv
+
 
 Datasets/talentfox_match_data/readme\.md
 
@@ -453,3 +457,6 @@ raw-data\.csv
 user-info\.csv
 
 Datasets/citeulike/citeulike_merged\.csv
+Datasets/citeulike/test_data\.csv
+Datasets/citeulike/val_data\.csv
+Datasets/citeulike/train_data\.csv
